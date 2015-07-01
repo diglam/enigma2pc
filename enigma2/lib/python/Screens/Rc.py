@@ -16,7 +16,6 @@ class Rc:
 		
 		config.misc.rcused = ConfigInteger(default = 1)
 		self.isDefaultRc = rc_model.rcIsDefault()
-
 		self.rcheight = 500
 		self.rcheighthalf = 250
 		
@@ -29,13 +28,13 @@ class Rc:
 		self.onShown.append(self.initRc)
 
 	def initRc(self):
-				if self.isDefaultRc:
+		if self.isDefaultRc:
 			self["rc"].setPixmapNum(config.misc.rcused.value)
 		else:
 			self["rc"].setPixmapNum(0)
 
 	def readPositions(self):
-				if self.isDefaultRc:
+		if self.isDefaultRc:
 			target = resolveFilename(SCOPE_SKIN, "rcpositions.xml")
 		else:
 			target = rc_model.getRcPositions()
@@ -63,7 +62,7 @@ class Rc:
 	def showRc(self):
 		self["rc"].show()
 
-		def selectKey(self, key):
+	def selectKey(self, key):
 		if self.isDefaultRc:
 			rc = self.rcs[config.misc.rcused.value]
 		else:
