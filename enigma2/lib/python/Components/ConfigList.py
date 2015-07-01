@@ -145,6 +145,8 @@ class ConfigListScreen:
 
 		self.onChangedEntry = []
 
+		self.onChangedEntry = []
+
 		self["VirtualKB"] = ActionMap(["VirtualKeyboardActions"],
 		{
 			"showVirtualKeyboard": self.KeyText,
@@ -160,6 +162,17 @@ class ConfigListScreen:
 		
 		if not self.handleInputHelpers in self["config"].onSelectionChanged:
 			self["config"].onSelectionChanged.append(self.handleInputHelpers)
+
+	def createSummary(self):
+		self.setup_title = self.getTitle()
+		from Screens.Setup import SetupSummary
+		return SetupSummary
+
+	def getCurrentEntry(self):
+		return self["config"].getCurrent()[0]
+
+	def getCurrentValue(self):
+		return str(self["config"].getCurrent()[1].getText())
 
 	def createSummary(self):
 		self.setup_title = self.getTitle()
