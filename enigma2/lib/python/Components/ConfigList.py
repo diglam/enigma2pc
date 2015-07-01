@@ -145,8 +145,6 @@ class ConfigListScreen:
 
 		self.onChangedEntry = []
 
-		self.onChangedEntry = []
-
 		self["VirtualKB"] = ActionMap(["VirtualKeyboardActions"],
 		{
 			"showVirtualKeyboard": self.KeyText,
@@ -169,17 +167,6 @@ class ConfigListScreen:
 		return SetupSummary
 
 	def getCurrentEntry(self):
-		return self["config"].getCurrent()[0]
-
-	def getCurrentValue(self):
-		return str(self["config"].getCurrent()[1].getText())
-
-	def createSummary(self):
-		self.setup_title = self.getTitle()
-		from Screens.Setup import SetupSummary
-		return SetupSummary
-
-	def getCurrentEntry(self):
 		return self["config"].getCurrent() and self["config"].getCurrent()[0] or ""
 
 	def getCurrentValue(self):
@@ -191,6 +178,7 @@ class ConfigListScreen:
 	def changedEntry(self):
 		for x in self.onChangedEntry:
 			x()
+
 
 	def handleInputHelpers(self):
 		if self["config"].getCurrent() is not None:

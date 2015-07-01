@@ -108,15 +108,6 @@ class Setup(ConfigListScreen, Screen):
 	def layoutFinished(self):
 		self.setTitle(_(self.setup_title))
 
-	def getCurrentEntry(self):
-		return self["config"].getCurrent() and self["config"].getCurrent()[0] or ""
-
-	def getCurrentValue(self):
-		return self["config"].getCurrent() and str(self["config"].getCurrent()[1].getText()) or ""
-
-	def createSummary(self):
-		return SetupSummary
-
 	def addItems(self, list, parentNode):
 		for x in parentNode:
 			if not x.tag:
