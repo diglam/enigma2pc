@@ -2,6 +2,7 @@ from Components.Pixmap import MovingPixmap, MultiPixmap
 from Tools.Directories import resolveFilename, SCOPE_SKIN
 from xml.etree.ElementTree import ElementTree
 from Components.config import config, ConfigInteger
+from Components.RcModel import rc_model
 
 config.misc.rcused = ConfigInteger(default = 1)
 
@@ -14,7 +15,8 @@ class Rc:
 		self["arrowup2"] = MovingPixmap()
 		
 		config.misc.rcused = ConfigInteger(default = 1)
-		
+		self.isDefaultRc = rc_model.rcIsDefault()
+
 		self.rcheight = 500
 		self.rcheighthalf = 250
 		
@@ -27,10 +29,17 @@ class Rc:
 		self.onShown.append(self.initRc)
 
 	def initRc(self):
-		self["rc"].setPixmapNum(config.misc.rcused.value)		
-				
+				if self.isDefaultRc:
+			self["rc"].setPixmapNum(config.misc.rcused.value)
+		else:
+			self["rc"].setPixmapNum(0)
+
 	def readPositions(self):
-		tree = ElementTree(file = resolveFilename(SCOPE_SKIN, "rcpositions.xml"))
+				if self.isDefaultRc:
+			target = resolveFilename(SCOPE_SKIN, "rcpositions.xml")
+		else:
+			target = rc_model.getRcPositions()
+		tree = ElementTree(file = target)
 		rcs = tree.getroot()
 		self.rcs = {}
 		for rc in rcs:
@@ -54,8 +63,11 @@ class Rc:
 	def showRc(self):
 		self["rc"].show()
 
-	def selectKey(self, key):
-		rc = self.rcs[config.misc.rcused.value]
+		def selectKey(self, key):
+		if self.isDefaultRc:
+			rc = self.rcs[config.misc.rcused.value]
+		else:
+			rc = self.rcs[2]
 		if rc.has_key(key):
 			rcpos = self["rc"].getPosition()
 			pos = rc[key]
