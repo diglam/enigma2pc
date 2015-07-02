@@ -48,7 +48,7 @@ from bisect import insort
 #from sys import maxint
 maxint = 0x7FFFFFFF
 
-from RecordTimer import RecordTimerEntry, RecordTimer
+from RecordTimer import RecordTimerEntry, RecordTimer, findSafeRecordPath
 
 # hack alert!
 from Menu import MainMenu, mdom
@@ -136,7 +136,7 @@ class InfoBarUnhandledKey:
 		self.checkUnusedTimer = eTimer()
 		self.checkUnusedTimer.callback.append(self.checkUnused)
 		self.onLayoutFinish.append(self.unhandledKeyDialog.hide)
-		eActionMap.getInstance().bindAction('', -maxint, self.actionA) #highest prio
+		eActionMap.getInstance().bindAction('', -maxint -1, self.actionA) #highest prio
 		eActionMap.getInstance().bindAction('', maxint, self.actionB) #lowest prio
 		self.flags = (1<<1)
 		self.uflags = 0
@@ -179,13 +179,14 @@ class InfoBarScreenSaver:
 		self.ScreenSaverTimerStart()
 
 	def __onExecEnd(self):
+		if self.screensaver.shown:
+			self.screensaver.hide()
+			eActionMap.getInstance().unbindAction('', self.keypressScreenSaver)
 		self.screenSaverTimer.stop()
-		self.screensaver.hide()
-		eActionMap.getInstance().unbindAction('', self.keypressScreenSaver)
 
 	def ScreenSaverTimerStart(self):
 		time = int(config.usage.screen_saver.value)
-		flag = hasattr(self, "seekstate") and self.seekstate[0]
+		flag = self.seekstate[0]
 		if not flag:
 			ref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
 			if ref:
@@ -202,13 +203,14 @@ class InfoBarScreenSaver:
 			if hasattr(self, "pvrStateDialog"):
 				self.pvrStateDialog.hide()
 			self.screensaver.show()
+			eActionMap.getInstance().bindAction('', -maxint - 1, self.keypressScreenSaver)
 
 	def keypressScreenSaver(self, key, flag):
 		if flag:
-			if self.screensaver.shown:
-				self.screensaver.hide()
-				self.show()
+			self.screensaver.hide()
+			self.show()
 			self.ScreenSaverTimerStart()
+			eActionMap.getInstance().unbindAction('', self.keypressScreenSaver)
 
 class SecondInfoBar(Screen):
 
@@ -351,6 +353,27 @@ class InfoBarShowHide(InfoBarScreenSaver):
 #		self.instance.m_animation.startMoveAnimation(ePoint(0, 380), ePoint(0, 600), 100)
 #		self.__state = self.STATE_HIDDEN
 
+class NumberZapSummary(Screen):
+	def __init__(self, session, parent):
+		Screen.__init__(self, session, parent = parent)
+		self["channel"] = StaticText("Test1")
+		self["number"] = StaticText("Test2")
+		self["servicename"] = StaticText("Test3")
+		self.onShow.append(self.__onShow)
+		self.onHide.append(self.__onHide)
+
+	def __onShow(self):
+		self.parent.onChanged.append(self.selectionChanged)
+		self.selectionChanged()
+
+	def __onHide(self):
+		self.parent.onChanged.remove(self.selectionChanged)
+
+	def selectionChanged(self):
+		self["number"].text = self.parent["number"].getText()
+		self["channel"].text = self.parent["channel"].getText()
+		self["servicename"].text = self.parent["servicename"].getText()
+
 class NumberZap(Screen):
 	def quit(self):
 		self.Timer.stop()
@@ -375,7 +398,7 @@ class NumberZap(Screen):
 			else:
 				self.service, self.bouquet = self.searchNumber(int(self["number"].getText()))
 			self["servicename"].text = self["servicename_summary"].text = ServiceReference(self.service).getServiceName()
-
+	
 	def keyNumberGlobal(self, number):
 		self.Timer.start(1000, True)
 		self.numberString = self.numberString + str(number)
@@ -385,22 +408,20 @@ class NumberZap(Screen):
 
 		if len(self.numberString) >= 5:
 			self.keyOK()
-		for x in self.onChanged:
-			x()
 
 	def __init__(self, session, number, searchNumberFunction = None):
 		Screen.__init__(self, session)
 		self.numberString = str(number)
 		self.searchNumber = searchNumberFunction
 		self.startBouquet = None
-		self.onChanged = []
 
-		self["channel"] = StaticText(_("Channel:"))
+		self["channel"] = Label(_("Channel:"))
 		self["number"] = Label(self.numberString)
-		self["servicename"] = StaticText()
+		self["servicename"] = Label()
 		self["channel_summary"] = StaticText(_("Channel:"))
 		self["number_summary"] = StaticText(self.numberString)
 		self["servicename_summary"] = StaticText()
+
 
 		self.handleServiceName()
 
@@ -424,6 +445,9 @@ class NumberZap(Screen):
 		self.Timer = eTimer()
 		self.Timer.callback.append(self.keyOK)
 		self.Timer.start(3000, True)
+
+	def createSummary(self):
+		return NumberZapSummary
 
 class InfoBarNumberZap:
 	""" Handles an initial number for NumberZapping """
@@ -1667,12 +1691,12 @@ class InfoBarTimeshift:
 			print "play, ..."
 			ts.activateTimeshift() # activate timeshift will automatically pause
 			self.setSeekState(self.SEEK_STATE_PAUSE)
-#			seekable = self.getSeek()
-#			if seekable is not None:
-#				seekable.seekTo(-90000) # seek approx. 1 sec before end
+			seekable = self.getSeek()
+			if seekable is not None:
+				seekable.seekTo(-90000) # seek approx. 1 sec before end
 			self.timeshift_was_activated = True
 		if back:
-			self.ts_rewind_timer.start(1500, 1)
+			self.ts_rewind_timer.start(200, 1)
 
 	def rewindService(self):
 		self.setSeekState(self.makeStateBackward(int(config.seek.enter_backward.value)))
@@ -2187,15 +2211,21 @@ class InfoBarInstantRecord:
 		return timers > identical
 
 	def instantRecord(self):
-		dir = preferredInstantRecordPath()
-		if not dir or not fileExists(dir, 'w'):
-			dir = defaultMoviePath()
-		try:
-			stat = os_stat(dir)
-		except:
-			# XXX: this message is a little odd as we might be recording to a remote device
-			self.session.open(MessageBox, _("Missing ") + dir + "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
-			return
+		pirr = preferredInstantRecordPath()
+		if not findSafeRecordPath(pirr) and not findSafeRecordPath(defaultMoviePath()):
+			if not pirr:
+				pirr = ""
+			self.session.open(MessageBox, _("Missing ") + "\n" + pirr + "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
+			return			
+
+#		if not dir or not fileExists(pirr, 'w'):
+#			pirr = defaultMoviePath()
+#		try:
+#			stat = os_stat(pirr)
+#		except:
+#			# XXX: this message is a little odd as we might be recording to a remote device
+#			self.session.open(MessageBox, _("Missing ") + pirr + "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
+#			return			
 
 		if isStandardInfoBar(self):
 			common = ((_("Add recording (stop after current event)"), "event"),
