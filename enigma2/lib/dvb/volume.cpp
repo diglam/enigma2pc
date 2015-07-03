@@ -1,3 +1,4 @@
+#include <lib/base/cfile.h>
 #include <lib/base/eerror.h>
 #include <lib/dvb/volume.h>
 #include <lib/gdi/xineLib.h>
@@ -156,15 +157,7 @@ void eDVBVolumecontrol::setVolume(int left, int right)
 	}
 
 	//HACK?
-	FILE *f;
-	if((f = fopen(eEnv::resolve("${sysconfdir}/stb/avs/0/volume").c_str(), "wb")) == NULL) {
-		eDebug("cannot open /usr/local/e2/etc/stb/avs/0/volume(%m)");
-		return;
-	}
-
-	fprintf(f, "%d", left); /* in -1dB */
-
-	fclose(f);
+	CFile::writeInt("${sysconfdir}/stb/avs/0/volume", left); /* in -1dB */	
 #endif
 }
 
@@ -196,15 +189,7 @@ void eDVBVolumecontrol::volumeMute()
 	muted = true;
 
 	//HACK?
-	FILE *f;
-	if((f = fopen(eEnv::resolve("${sysconfdir}/stb/audio/j1_mute").c_str(), "wb")) == NULL) {
-		eDebug("cannot open /usr/local/e2/etc/stb/audio/j1_mute(%m)");
-		return;
-	}
-	
-	fprintf(f, "%d", 1);
-
-	fclose(f);
+	CFile::writeInt("${sysconfdir}/stb/audio/j1_mute", 1);
 #endif
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->setVolumeMute(1);
@@ -227,15 +212,7 @@ void eDVBVolumecontrol::volumeUnMute()
 	muted = false;
 
 	//HACK?
-	FILE *f;
-	if((f = fopen(eEnv::resolve("${sysconfdir}/stb/audio/j1_mute").c_str(), "wb")) == NULL) {
-		eDebug("cannot open /usr/local/e2/etc/stb/audio/j1_mute(%m)");
-		return;
-	}
-	
-	fprintf(f, "%d", 0);
-
-	fclose(f);
+	CFile::writeInt("${sysconfdir}/stb/audio/j1_mute", 0);
 #endif
 
 	cXineLib *xineLib = cXineLib::getInstance();
