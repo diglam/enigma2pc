@@ -200,14 +200,9 @@ class RecordTimerEntry(timer.TimerEntry, object):
 		if config.recording.ascii_filenames.value:
 			filename = ASCIItranslit.legacyEncode(filename)
 
-#		if not self.dirname or not Directories.fileExists(self.dirname, 'w'):
-#			if self.dirname:
-#				self.dirnameHadToFallback = True
-#			dirname = defaultMoviePath()
 		if not self.dirname:
 			dirname = findSafeRecordPath(defaultMoviePath())
 		else:
-#			dirname = self.dirname
 			dirname = findSafeRecordPath(self.dirname)
 			if dirname is None:
 				dirname = findSafeRecordPath(defaultMoviePath())
@@ -223,7 +218,7 @@ class RecordTimerEntry(timer.TimerEntry, object):
 		if self.justplay:
 			return True
 		else:
-#			self.calculateFilename()
+
 			if not self.calculateFilename():
 				self.do_backoff()
 				self.start_prepare = time() + self.backoff
