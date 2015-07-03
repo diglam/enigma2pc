@@ -194,19 +194,20 @@ class TryQuitMainloop(MessageBox):
 		if self.connected:
 			self.conntected=False
 			self.session.nav.record_event.remove(self.getRecordEvent)
-				if value:
+		if value:
 			self.hide()
 			if self.retval == 1:
 				config.misc.DeepStandby.value = True
-			if self.retval == 3:
+			elif self.retval != 5:
 				config.misc.RestartUI.value = True
-			config.misc.RestartUI.save()
+				config.misc.RestartUI.save()
 			self.session.nav.stopService()
 			self.quitScreen = self.session.instantiateDialog(QuitMainloopScreen,retvalue=self.retval)
 			self.quitScreen.show()
 			quitMainloop(self.retval)
 		else:
 			MessageBox.close(self, True)
+
 
 	def __onShow(self):
 		global inTryQuitMainloop
