@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <lib/base/cfile.h>
 #include <lib/base/encoding.h>
 #include <lib/base/eerror.h>
 #include <lib/base/eenv.h>
@@ -19,7 +20,12 @@ inline char toupper(char c)
 eDVBTextEncodingHandler::eDVBTextEncodingHandler()
 {
 	std::string file = eEnv::resolve("${datadir}/enigma2/encoding.conf");
-	FILE *f = fopen(file.c_str(), "rt");
+	if (::access(file.c_str(), R_OK) < 0)
+	{
+		/* no personalized encoding.conf, fallback to the system default */
+		file = eEnv::resolve("${datadir}/enigma2/encoding.conf");
+	}
+	CFile f(file.c_str(), "rt");
 	if (f)
 	{
 		char *line = (char*) malloc(256);
@@ -58,7 +64,6 @@ eDVBTextEncodingHandler::eDVBTextEncodingHandler()
 			else
 				eDebug("encoding.conf: couldn't parse %s", line);
 		}
-		fclose(f);
 		free(line);
 	}
 	else

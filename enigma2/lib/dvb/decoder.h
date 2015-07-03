@@ -33,11 +33,13 @@ class eDVBVideo: public iObject, public Object
 private:
 	ePtr<eDVBDemux> m_demux;
 	int m_fd, m_fd_demux, m_dev;
+	static int m_close_invalidates_attributes;
 	int m_is_slow_motion, m_is_fast_forward, m_is_freezed;
 	ePtr<eSocketNotifier> m_sn;
 	void video_event(int what);
 	Signal1<void, struct iTSMPEGDecoder::videoEvent> m_event;
 	int m_width, m_height, m_framerate, m_aspect, m_progressive;
+	static int readApiSize(int fd, int &xres, int &yres, int &aspect);
 public:
 	enum { MPEG2, MPEG4_H264, MPEG1, MPEG4_Part2, VC1, VC1_SM };
 	eDVBVideo(eDVBDemux *demux, int dev);

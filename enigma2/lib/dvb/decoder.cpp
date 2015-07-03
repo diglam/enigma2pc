@@ -1,3 +1,4 @@
+#include <lib/base/cfile.h>
 #include <lib/base/ebase.h>
 #include <lib/base/eerror.h>
 #include <lib/base/wrappers.h>
@@ -259,6 +260,8 @@ eDVBAudio::~eDVBAudio()
 
 DEFINE_REF(eDVBVideo);
 
+int eDVBVideo::m_close_invalidates_attributes = -1;
+
 eDVBVideo::eDVBVideo(eDVBDemux *demux, int dev)
 	: m_demux(demux), m_dev(dev),
 	m_width(-1), m_height(-1), m_framerate(-1), m_aspect(-1), m_progressive(-1)
@@ -289,6 +292,26 @@ eDVBVideo::eDVBVideo(eDVBDemux *demux, int dev)
 	if (m_fd >= 0)
 	{
 		::ioctl(m_fd, VIDEO_SELECT_SOURCE, demux ? VIDEO_SOURCE_DEMUX : VIDEO_SOURCE_HDMI);
+	}
+
+	if (m_close_invalidates_attributes < 0)
+	{
+		/*
+		 * Some hardware does not invalidate the video attributes,
+		 * when we open the video device.
+		 * If that is the case, we cannot rely on receiving VIDEO_EVENTs
+		 * when the new video attributes are available, because they might
+		 * be equal to the old attributes.
+		 * Instead, we should just query the old attributes, and assume
+		 * them to be correct untill we receive VIDEO_EVENTs.
+		 *
+		 * Though this is merely a cosmetic issue, we do try to detect
+		 * whether attributes are invalidated or not.
+		 * So we can avoid polling for valid attributes, when we know
+		 * we can rely on VIDEO_EVENTs.
+		 */
+		readApiSize(m_fd, m_width, m_height, m_aspect);
+		m_close_invalidates_attributes = (m_width == -1) ? 1 : 0;
 	}
 }
 
@@ -587,7 +610,7 @@ static int readMpegProc(const char *str, int decoder)
         return val;
 }
 
-static int readApiSize(int fd, int &xres, int &yres, int &aspect)
+int eDVBVideo::readApiSize(int fd, int &xres, int &yres, int &aspect)
 {
 	video_size_t size;
 	if (!::ioctl(fd, VIDEO_GET_SIZE, &size))
@@ -600,73 +623,66 @@ static int readApiSize(int fd, int &xres, int &yres, int &aspect)
 	return -1;
 }
 
-static int readApiFrameRate(int fd, int &framerate)
-{
-        unsigned int frate;
-        if (!::ioctl(fd, VIDEO_GET_FRAME_RATE, &frate))
-        {
-                framerate = frate;
-                return 0;
-        }
-        return -1;
-}
-
 int eDVBVideo::getWidth()
 {
-	if (m_width == -1)
-		readApiSize(m_fd, m_width, m_height, m_aspect);
-	if (m_width == -1)
-		m_width = readMpegProc("xres", m_dev);
+	/* when closing the video device invalidates the attributes, we can rely on VIDEO_EVENTs */
+	if (!m_close_invalidates_attributes)
+		{
+		if (m_width == -1)
+			readApiSize(m_fd, m_width, m_height, m_aspect);
+	}
 	return m_width;
 }
 
 int eDVBVideo::getHeight()
 {
-	if (m_height == -1)
-		readApiSize(m_fd, m_width, m_height, m_aspect);
-	if (m_height == -1)
-		m_height = readMpegProc("yres", m_dev);
+	/* when closing the video device invalidates the attributes, we can rely on VIDEO_EVENTs */
+	if (!m_close_invalidates_attributes)
+	{
+		if (m_height == -1)
+			readApiSize(m_fd, m_width, m_height, m_aspect);
+	}
 	return m_height;
 }
 
+
 int eDVBVideo::getAspect()
 {
-	if (m_aspect == -1)
-		readApiSize(m_fd, m_width, m_height, m_aspect);
-	if (m_aspect == -1)
-		m_aspect = readMpegProc("aspect", m_dev);
+	/* when closing the video device invalidates the attributes, we can rely on VIDEO_EVENTs */
+	if (!m_close_invalidates_attributes)
+	{
+		if (m_aspect == -1)
+			readApiSize(m_fd, m_width, m_height, m_aspect);
+	}
 	return m_aspect;
 }
 
 int eDVBVideo::getProgressive()
 {
-	if (m_progressive == -1)
-		m_progressive = readMpegProc("progressive", m_dev);
-/*	{
-		char tmp[64];
-		sprintf(tmp, "/usr/local/e2/etc/stb/vmpeg/%d/progressive", m_dev);
-		FILE *f = fopen(tmp, "r");
-		if (f)
+	/* when closing the video device invalidates the attributes, we can rely on VIDEO_EVENTs */
+	if (!m_close_invalidates_attributes)
+	{
+		if (m_progressive == -1)
 		{
-			fscanf(f, "%x", &m_progressive);
-			fclose(f);
+			char tmp[64];
+			sprintf(tmp, "/usr/local/e2/etc/stb/vmpeg/%d/progressive", m_dev);
+			CFile::parseIntHex(&m_progressive, tmp);
 		}
 	}
-*/
 	return m_progressive;
 }
 
 int eDVBVideo::getFrameRate()
 {
-	if (m_framerate == -1)
-/*		readApiFrameRate(m_fd, m_framerate);
-	if (m_framerate == -1)
-		m_framerate = readMpegProc("framerate", m_dev);
-*/
+	/* when closing the video device invalidates the attributes, we can rely on VIDEO_EVENTs */
+	if (!m_close_invalidates_attributes)
 	{
-		if (m_fd >= 0)
+		if (m_framerate == -1)
 		{
+			if (m_fd >= 0)
+			{
 			::ioctl(m_fd, VIDEO_GET_FRAME_RATE, &m_framerate);
+			}
 		}
 	}
 	return m_framerate;
@@ -965,34 +981,29 @@ RESULT eTSMPEGDecoder::setHwPCMDelay(int delay)
 {
 	if (delay != m_pcm_delay )
 	{
-		FILE *fp = fopen(eEnv::resolve("${sysconfdir}/stb/audio/audio_delay_pcm").c_str(), "w");
-		if (fp)
+		if (CFile::writeIntHex("${sysconfdir}/stb/audio/audio_delay_pcm", delay*90) >= 0)
 		{
-			fprintf(fp, "%x", delay*90);
-			fclose(fp);
 			m_pcm_delay = delay;
 			return 0;
 		}
 	}
-//	eDebug("VIDEO_GET_SIZE failed (%m)");
 	return -1;
 }
+
 
 RESULT eTSMPEGDecoder::setHwAC3Delay(int delay)
 {
 	if ( delay != m_ac3_delay )
 	{
-		FILE *fp = fopen(eEnv::resolve("${sysconfdir}/stb/audio/audio_delay_bitstream").c_str(), "w");
-		if (fp)
+		if (CFile::writeIntHex("${sysconfdir}/stb/audio/audio_delay_bitstream", delay*90) >= 0)
 		{
-			fprintf(fp, "%x", delay*90);
-			fclose(fp);
 			m_ac3_delay = delay;
 			return 0;
 		}
 	}
 	return -1;
 }
+
 
 RESULT eTSMPEGDecoder::setPCMDelay(int delay)
 {

@@ -3,6 +3,7 @@
 #include <sys/ioctl.h>
 #include <string.h>
 
+#include <lib/base/cfile.h>
 #include <lib/base/init.h>
 #include <lib/base/init_num.h>
 #include <lib/base/eerror.h>
@@ -49,12 +50,11 @@ int eAVSwitch::getVCRSlowBlanking()
 	int val=0;
 	if (m_fp_fd >= 0)
 	{
-		FILE *f = fopen(eEnv::resolve("${sysconfdir}/stb/fp/vcr_fns").c_str(), "r");
+		CFile f("/proc/stb/fp/events", "r");
 		if (f)
 		{
 			if (fscanf(f, "%d", &val) != 1)
 				eDebug("read /usr/local/e2/etc/stb/fp/vcr_fns failed!! (%m)");
-			fclose(f);
 		}
 		else if (ioctl(m_fp_fd, FP_IOCTL_GET_VCR, &val) < 0)
 			eDebug("FP_GET_VCR failed (%m)");
@@ -71,7 +71,7 @@ void eAVSwitch::fp_event(int what)
 	}
 	else
 	{
-		FILE *f = fopen(eEnv::resolve("${sysconfdir}/stb/fp/events").c_str(), "r");
+		CFile f("/proc/stb/fp/events", "r");
 		if (f)
 		{
 			int events;
@@ -79,7 +79,6 @@ void eAVSwitch::fp_event(int what)
 				eDebug("read /usr/local/e2/etc/stb/fp/events failed!! (%m)");
 			else if (events & FP_EVENT_VCR_SB_CHANGED)
 				/* emit */ vcr_sb_notifier(getVCRSlowBlanking());
-			fclose(f);
 		}
 		else
 		{

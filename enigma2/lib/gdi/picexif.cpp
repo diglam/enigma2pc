@@ -1,4 +1,6 @@
 #include "picexif.h"
+#include <lib/base/eerror.h>
+#include <lib/base/cfile.h>
 
 #define M_SOF0  0xC0
 #define M_SOF1  0xC1
@@ -88,26 +90,11 @@ void Cexif::ClearExif()
 	}
 }
 
-struct FileWrapper
-{
-	FILE* handle;
-	FileWrapper(const char *filename, const char* mode):
-		handle(fopen(filename, mode))
-	{}
-	~FileWrapper()
-	{
-		if (handle)
-		{
-			fclose(handle);
-		}
-	}
-};
-
 bool Cexif::DecodeExif(const char *filename, int Thumb)
 {
-	FileWrapper wrapper(filename, "r");
-	FILE * hFile = wrapper.handle;
-	if(!hFile) return false;
+	CFile hFile(filename, "rb");
+	if (!hFile)
+		return false;
 
 	m_exifinfo = new EXIFINFO;
 	memset(m_exifinfo,0,sizeof(EXIFINFO));
@@ -187,7 +174,7 @@ bool Cexif::DecodeExif(const char *filename, int Thumb)
 		case M_SOS:
 			return true;
 		case M_EOI:
-			printf("No image in jpeg!\n");
+			eDebug("[Cexif] No image in jpeg!\n");
 			return false;
 		case M_COM:
 			if (HaveCom)
