@@ -26,9 +26,13 @@
 DEFINE_REF(eDVBScan);
 
 eDVBScan::eDVBScan(iDVBChannel *channel, bool usePAT, bool debug)
-	:m_channel(channel), m_channel_state(iDVBChannel::state_idle)
-	,m_ready(0), m_ready_all(usePAT ? (readySDT|readyPAT) : readySDT)
-	,m_pmt_running(false), m_abort_current_pmt(false), m_flags(0)
+	:m_channel(channel)
+	,m_channel_state(iDVBChannel::state_idle)	
+	,m_ready(0)
+	, m_ready_all(usePAT ? (readySDT|readyPAT) : readySDT)
+	,m_pmt_running(false)
+	, m_abort_current_pmt(false)
+	, m_flags(0)
 	,m_usePAT(usePAT)
 	,m_scan_debug(debug)
 {
