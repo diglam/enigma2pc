@@ -491,6 +491,7 @@ def InitUsageConfig():
 	config.streaming.descramble = ConfigYesNo(default = True)
 	config.streaming.stream_eit = ConfigYesNo(default = True)
 	config.streaming.stream_ait = ConfigYesNo(default = True)
+	config.streaming.authentication = ConfigYesNo(default = False)
 #	config.pc.initial_window_width = ConfigNumber(default = 0)
 #	config.pc.initial_window_height = ConfigNumber(default = 0)
 
