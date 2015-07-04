@@ -19,7 +19,7 @@ inline char toupper(char c)
 
 eDVBTextEncodingHandler::eDVBTextEncodingHandler()
 {
-	std::string file = eEnv::resolve("${datadir}/enigma2/encoding.conf");
+	std::string file = eEnv::resolve("${sysconfdir}/enigma2/encoding.conf");
 	if (::access(file.c_str(), R_OK) < 0)
 	{
 		/* no personalized encoding.conf, fallback to the system default */
