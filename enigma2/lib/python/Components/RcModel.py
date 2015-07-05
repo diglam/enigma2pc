@@ -1,6 +1,7 @@
 import os
 from Tools.HardwareInfo import HardwareInfo
 from Tools.Directories import SCOPE_SKIN, resolveFilename
+from enigma import  eEnv
 
 class RcModel:
         RcModels = {}
@@ -20,8 +21,8 @@ class RcModel:
 
 	def getRcFile(self, ext):
 		# check for rc/type every time so rctype changes will be noticed
-		if os.path.exists('/proc/stb/ir/rc/type'):
-			rc = open('/proc/stb/ir/rc/type').read().strip()
+		if os.path.exists(eEnv.resolve('${sysconfdir}/stb/ir/rc/type')):
+			rc = open(eEnv.resolve('${sysconfdir}/stb/ir/rc/type')).read().strip()
 			modeltype = '%s.%s' % (self.model, rc)
 		else:
 			modeltype = None

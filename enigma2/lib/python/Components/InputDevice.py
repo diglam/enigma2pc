@@ -2,6 +2,7 @@ from config import config, ConfigSlider, ConfigSubsection, ConfigYesNo, ConfigTe
 from os import listdir, open as os_open, close as os_close, write as os_write, O_RDWR, O_NONBLOCK
 from Tools.Directories import pathExists
 from fcntl import ioctl
+from enigma import eEnv
 import struct
 
 # asm-generic/ioctl.h
@@ -196,10 +197,10 @@ config.plugins.remotecontroltype.rctype = ConfigInteger(default = 0)
 
 class RcTypeControl():
 	def __init__(self):
-		if pathExists('/proc/stb/ir/rc/type') and pathExists('/proc/stb/info/boxtype'):
+		if pathExists(eEnv.resolve('${sysconfdir}/stb/ir/rc/type')) and pathExists(eEnv.resolve('${sysconfdir}/stb/info/boxtype')):
 			self.isSupported = True
 
-			fd = open('/proc/stb/info/boxtype', 'r')
+			fd = open(eEnv.resolve('${sysconfdir}/stb/info/boxtype'), 'r')
 			self.boxType = fd.read()
 			fd.close()
 
@@ -215,7 +216,7 @@ class RcTypeControl():
 		return self.boxType
 
 	def writeRcType(self, rctype):
-		fd = open('/proc/stb/ir/rc/type', 'w')
+		fd = open(eEnv.resolve('${sysconfdir}/stb/ir/rc/type'), 'w')
 		fd.write('%d' % (rctype))
 		fd.close()
 

@@ -50,7 +50,7 @@ int eAVSwitch::getVCRSlowBlanking()
 	int val=0;
 	if (m_fp_fd >= 0)
 	{
-		CFile f("/proc/stb/fp/events", "r");
+		CFile f(eEnv::resolve("${sysconfdir}/stb/fp/vcr_fns"), "r");
 		if (f)
 		{
 			if (fscanf(f, "%d", &val) != 1)
@@ -71,7 +71,7 @@ void eAVSwitch::fp_event(int what)
 	}
 	else
 	{
-		CFile f("/proc/stb/fp/events", "r");
+		CFile f(eEnv::resolve("${sysconfdir}/stb/fp/events"), "r");
 		if (f)
 		{
 			int events;

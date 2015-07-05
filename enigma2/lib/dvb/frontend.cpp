@@ -1185,7 +1185,7 @@ int eDVBFrontend::readInputpower()
 	if (CFile::parseInt(&power, proc_name) == 0)
 		return power;
 
-	sprintf(proc_name, "/proc/stb/fp/lnb_sense%d", m_slotid);
+	sprintf(proc_name, eEnv::resolve("${sysconfdir}/stb/fp/lnb_sense%d").c_str(), m_slotid);
 	if (CFile::parseInt(&power, proc_name) == 0)
 		return power;
 	

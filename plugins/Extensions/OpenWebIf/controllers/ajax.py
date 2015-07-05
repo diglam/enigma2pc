@@ -16,6 +16,7 @@ from models.movies import getMovieList
 from models.timers import getTimers
 from models.config import getConfigs
 from base import BaseController
+from enigma import eEnv
 
 class AjaxController(BaseController):
 	def __init__(self, session, path = ""):
@@ -89,7 +90,7 @@ class AjaxController(BaseController):
 	def P_screenshot(self, request):
 		box = {}
 		box['brand'] = "dmm"
-		if fileExists("/proc/stb/info/vumodel"):
+		if fileExists(eEnv.resolve("${sysconfdir}/stb/info/vumodel")):
 			box['brand'] = "vuplus"
 		return { "box": box }
 		

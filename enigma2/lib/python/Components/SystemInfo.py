@@ -1,4 +1,4 @@
-from enigma import eDVBResourceManager
+from enigma import eDVBResourceManager, eEnv
 from Tools.Directories import fileExists
 from Tools.HardwareInfo import HardwareInfo
 
@@ -17,10 +17,10 @@ SystemInfo["CanMeasureFrontendInputPower"] = eDVBResourceManager.getInstance().c
 
 def countFrontpanelLEDs():
 	leds = 0
-	if fileExists("/usr/local/e2/etc/stb/fp/led_set_pattern"):
+	if fileExists(eEnv.resolve("${sysconfdir}/stb/fp/led_set_pattern")):
 		leds += 1
 
-	while fileExists("/usr/local/e2/etc/stb/fp/led%d_pattern" % leds):
+	while fileExists(eEnv.resolve("${sysconfdir}/stb/fp/led%d_pattern") % leds):
 		leds += 1
 
 	return leds
@@ -29,5 +29,5 @@ SystemInfo["NumFrontpanelLEDs"] = countFrontpanelLEDs()
 SystemInfo["FrontpanelDisplay"] = fileExists("/dev/dbox/oled0") or fileExists("/dev/dbox/lcd0")
 SystemInfo["FrontpanelDisplayGrayscale"] = fileExists("/dev/dbox/oled0")
 SystemInfo["DeepstandbySupport"] = HardwareInfo().get_device_name() != "dm800"
-SystemInfo["Fan"] = fileExists("/proc/stb/fp/fan")
-SystemInfo["FanPWM"] = SystemInfo["Fan"] and fileExists("/proc/stb/fp/fan_pwm")
+SystemInfo["Fan"] = fileExists(eEnv.resolve("${sysconfdir}/stb/fp/fan"))
+SystemInfo["FanPWM"] = SystemInfo["Fan"] and fileExists(eEnv.resolve("${sysconfdir}/stb/fp/fan_pwm"))

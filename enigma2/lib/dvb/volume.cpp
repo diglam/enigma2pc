@@ -157,7 +157,7 @@ void eDVBVolumecontrol::setVolume(int left, int right)
 	}
 
 	//HACK?
-	CFile::writeInt("${sysconfdir}/stb/avs/0/volume", left); /* in -1dB */	
+	CFile::writeInt(eEnv::resolve("${sysconfdir}/stb/avs/0/volume").c_str(), left); /* in -1dB */
 #endif
 }
 
@@ -189,7 +189,7 @@ void eDVBVolumecontrol::volumeMute()
 	muted = true;
 
 	//HACK?
-	CFile::writeInt("${sysconfdir}/stb/audio/j1_mute", 1);
+	CFile::writeInt(eEnv::resolve("${sysconfdir}/stb/audio/j1_mute").c_str(), 1);
 #endif
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->setVolumeMute(1);
@@ -212,7 +212,7 @@ void eDVBVolumecontrol::volumeUnMute()
 	muted = false;
 
 	//HACK?
-	CFile::writeInt("${sysconfdir}/stb/audio/j1_mute", 0);
+	CFile::writeInt(eEnv::resolve("${sysconfdir}/stb/audio/j1_mute").c_str(), 0);
 #endif
 
 	cXineLib *xineLib = cXineLib::getInstance();

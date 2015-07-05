@@ -228,18 +228,18 @@ def InitUsageConfig():
 
 	if SystemInfo["Fan"]:
 		choicelist = [('off', _("Off")), ('on', _("On")), ('auto', _("Auto"))]
-		if os.path.exists("/proc/stb/fp/fan_choices"):
-			choicelist = [x for x in choicelist if x[0] in open("/proc/stb/fp/fan_choices", "r").read().strip().split(" ")]
+		if os.path.exists(eEnv.resolve("${sysconfdir}/stb/fp/fan_choices")):
+			choicelist = [x for x in choicelist if x[0] in open(eEnv.resolve("${sysconfdir}/stb/fp/fan_choices"), "r").read().strip().split(" ")]
 		config.usage.fan = ConfigSelection(choicelist)
 		def fanChanged(configElement):
-			file = open("/proc/stb/fp/fan", "w")
+			file = open(eEnv.resolve("${sysconfdir}/stb/fp/fan"), "w")
 			file.write(configElement.value)
 			file.close()
 		config.usage.fan.addNotifier(fanChanged)
 
 	if SystemInfo["FanPWM"]:
 		def fanSpeedChanged(configElement):
-			file = open("/proc/stb/fp/fan_pwm", "w")
+			file = open(eEnv.resolve("${sysconfdir}/stb/fp/fan_pwm"), "w")
 			file.write(hex(configElement.value)[2:])
 			file.close()
 		config.usage.fanspeed = ConfigSlider(default=127, increment=8, limits=(0, 255))
@@ -346,11 +346,11 @@ def InitUsageConfig():
 		("3", _("Everywhere"))])
 	config.misc.erase_flags.addNotifier(updateEraseFlags, immediate_feedback = False)
 
-	SystemInfo["ZapMode"] = os.path.exists("/usr/local/e2/etc/stb/video/zapmode")
+	SystemInfo["ZapMode"] = os.path.exists(eEnv.resolve("${sysconfdir}/stb/video/zapmode"))
 	if SystemInfo["ZapMode"]:
 		def setZapmode(el):
 			try:
-				file = open("/usr/local/e2/etc/stb/video/zapmode", "w")
+				file = open(eEnv.resolve("${sysconfdir}/stb/video/zapmode"), "w")
 				file.write(el.value)
 				file.close()
 			except:

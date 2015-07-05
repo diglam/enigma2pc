@@ -25,6 +25,7 @@
 #include <lib/base/etpm.h>
 #include <openssl/bn.h>
 #include <openssl/sha.h>
+#include <lib/base/eenv.h>
 
 eBitrateCalc::eBitrateCalc(int pid, int dvbnamespace, int tsid, int onid, int refreshintervall, int buffer_size): m_size(0), m_refresh_intervall(refreshintervall)
 {
@@ -230,7 +231,7 @@ static bool signature()
 	return true;
 	int chk = 1;
 	FILE *fp; 
-	fp = fopen ("/proc/stb/info/model", "r");
+	fp = fopen ( eEnv::resolve("${sysconfdir}/stb/info/model").c_str(), "r");
 	if (fp)
 	{
 		char line[256];
