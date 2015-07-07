@@ -377,7 +377,7 @@ class NumberZap(Screen):
 			else:
 				self.service, self.bouquet = self.searchNumber(int(self["number"].getText()))
 			self["servicename"].text = self["servicename_summary"].text = ServiceReference(self.service).getServiceName()
-	
+
 	def keyNumberGlobal(self, number):
 		self.Timer.start(1000, True)
 		self.numberString = self.numberString + str(number)
@@ -400,7 +400,6 @@ class NumberZap(Screen):
 		self["channel_summary"] = StaticText(_("Channel:"))
 		self["number_summary"] = StaticText(self.numberString)
 		self["servicename_summary"] = StaticText()
-
 
 		self.handleServiceName()
 
@@ -2191,17 +2190,9 @@ class InfoBarInstantRecord:
 		if not findSafeRecordPath(pirr) and not findSafeRecordPath(defaultMoviePath()):
 			if not pirr:
 				pirr = ""
-			self.session.open(MessageBox, _("Missing ") + "\n" + pirr + "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
-			return			
-
-#		if not dir or not fileExists(pirr, 'w'):
-#			pirr = defaultMoviePath()
-#		try:
-#			stat = os_stat(pirr)
-#		except:
-#			# XXX: this message is a little odd as we might be recording to a remote device
-#			self.session.open(MessageBox, _("Missing ") + pirr + "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
-#			return			
+			self.session.open(MessageBox, _("Missing ") + "\n" + pirr +
+						 "\n" + _("No HDD found or HDD not initialized!"), MessageBox.TYPE_ERROR)
+			return
 
 		if isStandardInfoBar(self):
 			common = ((_("Add recording (stop after current event)"), "event"),
