@@ -250,7 +250,7 @@ def InitUsageConfig():
 	if SystemInfo["StandbyLED"]:
 		def standbyLEDChanged(configElement):
 			file = open(eEnv.resolve("${sysconfdir}/stb/power/standbyled"), "w")
-			file.write(configElement.value and "yes" or "no")
+			file.write(configElement.value and "on" or "off")
 			file.close()
 		config.usage.standbyLED = ConfigYesNo(default = True)
 		config.usage.standbyLED.addNotifier(standbyLEDChanged)
