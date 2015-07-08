@@ -92,13 +92,13 @@ class TimerList(HTMLComponent, GUIComponent, object):
 		self.iconRepeat = LoadPixmap(resolveFilename(SCOPE_SKIN_IMAGE, "skin_default/icons/timer_rep.png"))
 		self.iconZapped = LoadPixmap(resolveFilename(SCOPE_SKIN_IMAGE, "skin_default/icons/timer_zap.png"))
 		self.iconDisabled = LoadPixmap(resolveFilename(SCOPE_SKIN_IMAGE, "skin_default/icons/timer_off.png"))
-	
+
 	def getCurrent(self):
 		cur = self.l.getCurrentSelection()
 		return cur and cur[0]
-	
+
 	GUI_WIDGET = eListbox
-	
+
 	def postWidgetCreate(self, instance):
 		instance.setContent(self.l)
 
@@ -121,6 +121,9 @@ class TimerList(HTMLComponent, GUIComponent, object):
 		self.l.entryRemoved(idx)
 
 	def getOrbitalPos(self, ref):
+		refstr = str(ref)
+		if '%3a//' in refstr:
+			return "%s" % _("Stream")
 		op = int(str(ref).split(':', 10)[6][:-4] or "0",16)
 		if op == 0xeeee:
 			return "%s" % _("DVB-T")
