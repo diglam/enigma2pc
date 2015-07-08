@@ -439,8 +439,8 @@ class QuickSubtitlesConfigMenu(ConfigListScreen, Screen):
 
 		self["actions"] = NumberActionMap(["SetupActions"],
 		{
-			"cancel": self.finish,
-			"ok": self.finish,
+			"cancel": self.cancel,
+			"ok": self.ok,
 		},-2)
 
 	def changedEntry(self):
@@ -451,5 +451,9 @@ class QuickSubtitlesConfigMenu(ConfigListScreen, Screen):
 		self.infobar.setSeekState(self.infobar.SEEK_STATE_PAUSE)
 		self.infobar.setSeekState(self.infobar.SEEK_STATE_PLAY)
 
-	def finish(self):
+	def cancel(self):
+		self.close()
+
+	def ok(self):
+		config.subtitles.save()
 		self.close()
