@@ -248,10 +248,10 @@ def InitUsageConfig():
 		config.usage.standbyLED.addNotifier(standbyLEDChanged)
 
 	if SystemInfo["WakeOnLAN"]:
-		def standbyLEDChanged(configElement):
-			open(SystemInfo["ZapMode"], "w").write(el.value)
+		def wakeOnLANChanged(configElement):
+			open(SystemInfo["WakeOnLAN"], "w").write(configElement.value and "on" or "off")
 		config.usage.wakeOnLAN = ConfigYesNo(default = False)
-		config.usage.wakeOnLAN.addNotifier(standbyLEDChanged)
+		config.usage.wakeOnLAN.addNotifier(wakeOnLANChanged)
 
 	config.epg = ConfigSubsection()
 	config.epg.eit = ConfigYesNo(default = True)
@@ -353,7 +353,7 @@ def InitUsageConfig():
 	SystemInfo["ZapMode"] = os.path.exists(eEnv.resolve("${sysconfdir}/stb/video/zapmode"))
 	if SystemInfo["ZapMode"]:
 		def setZapmode(el):
-			open(eEnv.resolve("${sysconfdir}/stb/video/zapmode"), "w").write(el.value)
+			open(SystemInfo["ZapMode"], "w").write(el.value)
 		config.misc.zapmode = ConfigSelection(default = "mute", choices = [
 			("mute", _("Black screen")), ("hold", _("Hold screen")), ("mutetilllock", _("Black screen till locked")), ("holdtilllock", _("Hold till locked"))])
 		config.misc.zapmode.addNotifier(setZapmode, immediate_feedback = False)
