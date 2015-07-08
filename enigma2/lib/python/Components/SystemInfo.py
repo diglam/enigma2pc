@@ -34,4 +34,4 @@ SystemInfo["DeepstandbySupport"] = HardwareInfo().get_device_name() != "dm800"
 SystemInfo["Fan"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/fp/fan"))
 SystemInfo["FanPWM"] = SystemInfo["Fan"] and fileCheck(eEnv.resolve("${sysconfdir}/stb/fp/fan_pwm"))
 SystemInfo["StandbyLED"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/power/standbyled"))
-SystemInfo["WakeOnLAN"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/power/wol")) or fileCheck("${sysconfdir}/stb/fp/wol"))
+SystemInfo["WakeOnLAN"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/power/wol")) or fileCheck(eEnv.resolve("${sysconfdir}/stb/fp/wol"))
