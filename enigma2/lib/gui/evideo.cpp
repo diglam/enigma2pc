@@ -4,6 +4,10 @@
 
 ePtr<eTimer> eVideoWidget::fullsizeTimer;
 int eVideoWidget::pendingFullsize = 0;
+int eVideoWidget::posFullsizeLeft = 0;
+int eVideoWidget::posFullsizeTop = 0;
+int eVideoWidget::posFullsizeWidth = 0;
+int eVideoWidget::posFullsizeHeight = 0;
 
 eVideoWidget::eVideoWidget(eWidget *parent)
 	:eLabel(parent), m_fb_size(720, 576), m_state(0), m_decoder(1)
@@ -46,6 +50,17 @@ void eVideoWidget::setFBSize(eSize size)
 	m_fb_size = size;
 }
 
+void eVideoWidget::setFullScreenPosition(eRect pos)
+{
+	posFullsizeLeft = pos.left();
+	posFullsizeTop = pos.top();
+	posFullsizeWidth = pos.width();
+	posFullsizeHeight = pos.height();
+	cXineLib* xineLib = cXineLib::getInstance();
+	xineLib->setVideoWindow(posFullsizeLeft, posFullsizeTop, posFullsizeWidth, posFullsizeHeight);
+	setPosition(0, posFullsizeLeft, posFullsizeTop, posFullsizeWidth, posFullsizeHeight);
+}
+
 void eVideoWidget::writeProc(const std::string &filename, int value)
 {
 	FILE *f = fopen(filename.c_str(), "w");
@@ -75,8 +90,8 @@ void eVideoWidget::setFullsize(bool force)
 		if (force || (pendingFullsize & (1 << decoder)))
 		{
 			cXineLib* xineLib = cXineLib::getInstance();
-			xineLib->setVideoWindow(0, 0, 0, 0);
-			eVideoWidget::setPosition(decoder, 0, 0, 0, 0);
+			xineLib->setVideoWindow(posFullsizeLeft, posFullsizeTop, posFullsizeWidth, posFullsizeHeight);
+			eVideoWidget::setPosition(decoder, posFullsizeLeft, posFullsizeTop, posFullsizeWidth, posFullsizeHeight);
 			pendingFullsize &= ~(1 << decoder);
 		}
 	}
