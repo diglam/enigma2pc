@@ -11,7 +11,7 @@ eVideoWidget::eVideoWidget(eWidget *parent)
 	if (!fullsizeTimer)
 	{
 		fullsizeTimer = eTimer::create(eApp);
-		fullsizeTimer->timeout.connect(slot(eVideoWidget::setFullsize));
+		fullsizeTimer->timeout.connect(bind(slot(eVideoWidget::setFullsize), false));
 	}
 	parent->setPositionNotifyChild(1);
 }
@@ -68,11 +68,11 @@ void eVideoWidget::setPosition(int index, int left, int top, int width, int heig
 	writeProc(filename + "apply", 1);
 }
 
-void eVideoWidget::setFullsize()
+void eVideoWidget::setFullsize(bool force)
 {
 	for (int decoder=0; decoder < 1; ++decoder)
 	{
-		if (pendingFullsize & (1 << decoder))
+		if (force || (pendingFullsize & (1 << decoder)))
 		{
 			cXineLib* xineLib = cXineLib::getInstance();
 			xineLib->setVideoWindow(0, 0, 0, 0);
