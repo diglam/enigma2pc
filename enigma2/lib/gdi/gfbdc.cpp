@@ -14,20 +14,23 @@ gFBDC::gFBDC()
 	if (!fb->Available())
 		eFatal("no framebuffer available");
 
-	fb->getMode(m_xres, m_yres, m_bpp);
+	int xres;
+	int yres;
+	int bpp;
+	fb->getMode(xres, yres, bpp);
 
 	/* we can only use one of these three modes: */
-	if (!((m_xres == 720 && m_yres == 576)
-		|| (m_xres == 1280 && m_yres == 720)
-		|| (m_xres == 1920 && m_yres == 1080)))
+	if (!((xres == 720 && yres == 576)
+		|| (xres == 1280 && yres == 720)
+		|| (xres == 1920 && yres == 1080)))
 	{
 		/* fallback to a decent default */
-		m_xres = 720;
-		m_yres = 576;
+		xres = 720;
+		yres = 576;
 	}
- 
+
 	surface.clut.data = 0;
-	setResolution(m_xres, m_yres); // default res
+	setResolution(xres, yres); // default res
 
 	reloadSettings();
 }
@@ -174,7 +177,7 @@ void gFBDC::setGamma(int g)
 
 void gFBDC::setResolution(int xres, int yres, int bpp)
 {
-	if ((surface.x == xres) && (surface.y == yres) && (surface.bpp == bpp))
+	if (m_pixmap && (surface.x == xres) && (surface.y == yres) && (surface.bpp == bpp))
 		return;
 
 	if (gAccel::getInstance())
@@ -204,8 +207,8 @@ void gFBDC::setResolution(int xres, int yres, int bpp)
 	{
 		surface_back.data = 0;
 		surface_back.data_phys = 0;
+	}
 
-}
 	eDebug("%dkB available for acceleration surfaces.", (fb->Available() - fb_size)/1024);
 	eDebug("resolution: %d x %d x %d (stride: %d)", surface.x, surface.y, surface.bpp, fb->Stride());
 
