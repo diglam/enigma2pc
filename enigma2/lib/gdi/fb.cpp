@@ -53,8 +53,6 @@ fbClass::fbClass(const char *fb)
 		goto nolfb;
 	}
 
-	memcpy(&oldscreen, &screeninfo, sizeof(screeninfo));
-
 	fb_fix_screeninfo fix;
 	if (ioctl(fbFd, FBIOGET_FSCREENINFO, &fix)<0)
 	{
@@ -203,8 +201,6 @@ void fbClass::blit()
 
 fbClass::~fbClass()
 {
-	if (available)
-		ioctl(fbFd, FBIOPUT_VSCREENINFO, &oldscreen);
 	if (lfb)
 		msync(lfb, available, MS_SYNC);
 	showConsole(1);
