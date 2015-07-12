@@ -171,9 +171,6 @@ void gFBDC::setResolution(int xres, int yres, int bpp)
 
 	fb->SetMode(xres, yres, bpp);
 
-	for (int y=0; y<yres; y++)	// make whole screen transparent
-		memset(fb->lfb+y*fb->Stride(), 0x00, fb->Stride());
-
 	surface.x = xres;
 	surface.y = yres;
 	surface.bpp = bpp;
