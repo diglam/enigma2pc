@@ -8,15 +8,15 @@
 class gFBDC: public gMainDC
 {
 	fbClass *fb;
-	int brightness, gamma, alpha;
-	gUnmanagedSurface surface;
-	gUnmanagedSurface surface_back;
-	unsigned char ramp[256], rampalpha[256]; // RGB ramp 0..255
 	void exec(const gOpcode *opcode);
+	unsigned char ramp[256], rampalpha[256]; // RGB ramp 0..255
+	int brightness, gamma, alpha;
 	void calcRamp();
 	void setPalette();
+	gUnmanagedSurface surface;
+	gUnmanagedSurface surface_back;
 public:
-	void setResolution(int xres, int yres);
+	void setResolution(int xres, int yres, int bpp = 32);
 	void reloadSettings();
 	void setAlpha(int alpha);
 	void setBrightness(int brightness);

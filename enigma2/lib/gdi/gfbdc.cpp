@@ -14,8 +14,9 @@ gFBDC::gFBDC()
 	if (!fb->Available())
 		eFatal("no framebuffer available");
 
+	fb->getMode(m_xres, m_yres, m_bpp);
 	surface.clut.data = 0;
-	setResolution(720, 576); // default res
+	setResolution(m_xres, m_yres); // default res
 
 	reloadSettings();
 }
@@ -160,23 +161,23 @@ void gFBDC::setGamma(int g)
 	setPalette();
 }
 
-void gFBDC::setResolution(int xres, int yres)
+void gFBDC::setResolution(int xres, int yres, int bpp)
 {
-	if ((surface.x == xres) && (surface.y == yres))
+	if ((surface.x == xres) && (surface.y == yres) && (surface.bpp == bpp))
 		return;
 
 	if (gAccel::getInstance())
 		gAccel::getInstance()->releaseAccelMemorySpace();
 
-	fb->SetMode(xres, yres, 32);
+	fb->SetMode(xres, yres, bpp);
 
 	for (int y=0; y<yres; y++)	// make whole screen transparent
 		memset(fb->lfb+y*fb->Stride(), 0x00, fb->Stride());
 
 	surface.x = xres;
 	surface.y = yres;
-	surface.bpp = 32;
-	surface.bypp = 4;
+	surface.bpp = bpp;
+	surface.bypp = bpp / 8;
 	surface.stride = fb->Stride();
 	surface.data = fb->lfb;
 
@@ -195,7 +196,7 @@ void gFBDC::setResolution(int xres, int yres)
 	{
 		surface_back.data = 0;
 		surface_back.data_phys = 0;
-	
+
 }
 	eDebug("%dkB available for acceleration surfaces.", (fb->Available() - fb_size)/1024);
 	eDebug("resolution: %d x %d x %d (stride: %d)", surface.x, surface.y, surface.bpp, fb->Stride());

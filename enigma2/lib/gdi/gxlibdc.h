@@ -66,7 +66,7 @@ public:
 	virtual ~gXlibDC();
 
 	static gXlibDC *getInstance() { return instance; }
-	void setResolution(int xres, int yres);
+	void setResolution(int xres, int yres, int bpp = 32);
 	int islocked() { return 0; }
 
 	static void frame_output_cb(void *data, int video_width, int video_height, double video_pixel_aspect,

@@ -58,7 +58,7 @@ static int getConfigInt(const std::string &key)
 gXlibDC::gXlibDC() : m_pump(eApp, 1)
 {
 	double      res_h, res_v;
-	
+
 	umask(0);
 	mknod("/tmp/ENIGMA_FIFO", S_IFIFO|0666, 0);
 
@@ -75,7 +75,7 @@ gXlibDC::gXlibDC() : m_pump(eApp, 1)
 
 	ASSERT(instance == 0);
 	instance = this;
-	
+
 	if(!XInitThreads())
 	{
 		eFatal("XInitThreads() failed\n");
@@ -228,7 +228,7 @@ void gXlibDC::exec(const gOpcode *o)
 	}
 }
 
-void gXlibDC::setResolution(int xres, int yres)
+void gXlibDC::setResolution(int xres, int yres, int bpp)
 {
 	printf("setResolution %d %d\n", xres, yres);
 	windowWidth  = xres;
@@ -284,7 +284,7 @@ void gXlibDC::updateWindowState() {
 void gXlibDC::fullscreen_switch() {
 	printf("FULLSCREEN EVENT\n");
 	fullscreen ^= 1;
-	
+
 	XEvent xev;
 	XLockDisplay(display);
 	Atom wm_state = XInternAtom(display, "_NET_WM_STATE", False);
@@ -299,7 +299,7 @@ void gXlibDC::fullscreen_switch() {
 	xev.xclient.data.l[1] = fullscreenAtom;
 	xev.xclient.data.l[2] = 0;
 	XSendEvent(display, XDefaultRootWindow(display), False, SubstructureNotifyMask, &xev);
-	
+
 	updateWindowState();
 }
 
@@ -359,7 +359,7 @@ void gXlibDC::thread()
 			    {
 				   XConfigureEvent& cne = (XConfigureEvent&)event;
 				   Window           tmp_win;
-				   
+
 				   if((cne.x == 0) && (cne.y == 0)) {
 			                 XLockDisplay(display);
 	        		         XTranslateCoordinates(display, cne.window, DefaultRootWindow(cne.display),
@@ -376,11 +376,11 @@ void gXlibDC::thread()
 					   windowWidth  = cne.width;
 					   windowHeight = cne.height;
 					   updateWindowState();
-					 }  
+					 }
 				   }
 			     }
-			     break;				
-			}				
+			     break;
+			}
 		}
 	}
 }

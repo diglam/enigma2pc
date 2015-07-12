@@ -52,7 +52,7 @@ fbClass::fbClass(const char *fb)
 		perror("FBIOGET_VSCREENINFO");
 		goto nolfb;
 	}
-	
+
 	memcpy(&oldscreen, &screeninfo, sizeof(screeninfo));
 
 	fb_fix_screeninfo fix;
@@ -100,7 +100,7 @@ int fbClass::showConsole(int state)
 	return 0;
 }
 
-int fbClass::SetMode(unsigned int nxRes, unsigned int nyRes, unsigned int nbpp)
+int fbClass::SetMode(int nxRes, int nyRes, int nbpp)
 {
 	screeninfo.xres_virtual=screeninfo.xres=nxRes;
 	screeninfo.yres_virtual=(screeninfo.yres=nyRes)*2;
@@ -138,7 +138,7 @@ int fbClass::SetMode(unsigned int nxRes, unsigned int nyRes, unsigned int nbpp)
 	{
 		// try single buffering
 		screeninfo.yres_virtual=screeninfo.yres=nyRes;
-		
+
 		if (ioctl(fbFd, FBIOPUT_VSCREENINFO, &screeninfo)<0)
 		{
 			perror("FBIOPUT_VSCREENINFO");
@@ -148,11 +148,11 @@ int fbClass::SetMode(unsigned int nxRes, unsigned int nyRes, unsigned int nbpp)
 		eDebug(" - double buffering not available.");
 	} else
 		eDebug(" - double buffering available!");
-	
+
 	m_number_of_pages = screeninfo.yres_virtual / nyRes;
-	
+
 	ioctl(fbFd, FBIOGET_VSCREENINFO, &screeninfo);
-	
+
 	if ((screeninfo.xres!=nxRes) && (screeninfo.yres!=nyRes) && (screeninfo.bits_per_pixel!=nbpp))
 	{
 		eDebug("SetMode failed: wanted: %dx%dx%d, got %dx%dx%d",
@@ -171,6 +171,13 @@ int fbClass::SetMode(unsigned int nxRes, unsigned int nyRes, unsigned int nbpp)
 	stride=fix.line_length;
 	memset(lfb, 0, stride*yRes);
 	return 0;
+}
+
+void fbClass::getMode(int &xres, int &yres, int &bpp)
+{
+	xres = screeninfo.xres;
+	yres = screeninfo.yres;
+	bpp = screeninfo.bits_per_pixel;
 }
 
 int fbClass::setOffset(int off)
