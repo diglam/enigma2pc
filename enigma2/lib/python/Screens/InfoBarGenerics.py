@@ -1965,6 +1965,7 @@ class InfoBarPiP:
 				self.session.pip.servicePath = self.servicelist.getCurrentServicePath()
 				self.reclocatePiP()
 			else:
+				self.lastPiPService = None
 				self.session.pipshown = False
 				del self.session.pip
 
