@@ -168,6 +168,7 @@ int fbClass::SetMode(int nxRes, int nyRes, int nbpp)
 	}
 	stride=fix.line_length;
 	memset(lfb, 0, stride*yRes);
+	blit();
 	return 0;
 }
 
@@ -202,7 +203,10 @@ void fbClass::blit()
 fbClass::~fbClass()
 {
 	if (lfb)
+	{
 		msync(lfb, available, MS_SYNC);
+		munmap(lfb, available);
+	}
 	showConsole(1);
 	disableManualBlit();
 	if (fbFd >= 0)
