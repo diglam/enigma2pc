@@ -42,6 +42,7 @@ dvbinclude_HEADERS = \
 	dvb/demux.h \
 	dvb/dvb.h \
 	dvb/dvbtime.h \
+	dvb/edvbdemux.h \
 	dvb/eit.h \
 	dvb/epgcache.h \
 	dvb/esection.h \
