@@ -4,7 +4,7 @@
 #include <string>
 #include <lib/base/itssource.h>
 #include <lib/base/tsRingbuffer.h>
-#include <lib/dvb/demux.h>
+#include <lib/dvb/edvbdemux.h>
 
 class eRawFile: public iTsSource
 {

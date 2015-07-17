@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
-#include <aio.h>
 #include <sys/sysinfo.h>
 #include <sys/mman.h>
 
@@ -33,12 +32,9 @@ static int recordingBufferCount = determineBufferCount();
 #include "crc32.h"
 
 #include <lib/base/eerror.h>
-#include <lib/base/filepush.h>
-#include <lib/dvb/idvb.h>
 #include <lib/dvb/demux.h>
 #include <lib/dvb/esection.h>
 #include <lib/dvb/decoder.h>
-#include <lib/dvb/pvrparse.h>
 
 eDVBDemux::eDVBDemux(int adapter, int demux):
 	adapter(adapter),
@@ -135,25 +131,25 @@ RESULT eDVBDemux::getMPEGDecoder(ePtr<iTSMPEGDecoder> &decoder, int index)
 RESULT eDVBDemux::getSTC(pts_t &pts, int num)
 {
 	int fd = openDemux();
-	
+
 	if (fd < 0)
 		return -ENODEV;
 
 	struct dmx_stc stc;
 	stc.num = num;
 	stc.base = 1;
-	
+
 	if (ioctl(fd, DMX_GET_STC, &stc) < 0)
 	{
 		eDebug("DMX_GET_STC failed!");
 		::close(fd);
 		return -1;
 	}
-	
+
 	pts = stc.stc;
-	
+
 	eDebug("DMX_GET_STC - %lld", pts);
-	
+
 	::close(fd);
 	return 0;
 }
@@ -161,7 +157,7 @@ RESULT eDVBDemux::getSTC(pts_t &pts, int num)
 RESULT eDVBDemux::flush()
 {
 	// FIXME: implement flushing the PVR queue here.
-	
+
 	m_event(evtFlush);
 	return 0;
 }
@@ -215,7 +211,7 @@ void eDVBSectionReader::data(int)
 eDVBSectionReader::eDVBSectionReader(eDVBDemux *demux, eMainloop *context, RESULT &res): demux(demux), active(0)
 {
 	fd = demux->openDemux();
-	
+
 	if (fd >= 0)
 	{
 		notifier=eSocketNotifier::create(context, fd, eSocketNotifier::Read, false);
@@ -263,7 +259,7 @@ RESULT eDVBSectionReader::start(const eDVBSectionFilterMask &mask)
 		checkcrc = 1;
 	} else
 		checkcrc = 0;
-	
+
 	memcpy(sct.filter.filter, mask.data, DMX_FILTER_SIZE);
 	memcpy(sct.filter.mask, mask.mask, DMX_FILTER_SIZE);
 	memcpy(sct.filter.mode, mask.mode, DMX_FILTER_SIZE);
@@ -367,11 +363,11 @@ RESULT eDVBPESReader::start(int pid)
 	flt.pid     = pid;
 	flt.input   = DMX_IN_FRONTEND;
 	flt.output  = DMX_OUT_TAP;
-	
+
 	flt.flags   = DMX_IMMEDIATE_START;
 
 	res = ::ioctl(m_fd, DMX_SET_PES_FILTER, &flt);
-	
+
 	if (res)
 		eWarning("PES filter: DMX_SET_PES_FILTER - %m");
 	if (!res)
@@ -396,46 +392,6 @@ RESULT eDVBPESReader::connectRead(const Slot2<void,const __u8*,int> &r, ePtr<eCo
 	conn = new eConnection(this, m_read.connect(r));
 	return 0;
 }
-
-class eDVBRecordFileThread: public eFilePushThreadRecorder
-{
-public:
-	eDVBRecordFileThread(int packetsize, int bufferCount);
-	~eDVBRecordFileThread();
-	void setTimingPID(int pid, iDVBTSRecorder::timing_pid_type pidtype, int streamtype);
-	void startSaveMetaInformation(const std::string &filename);
-	void stopSaveMetaInformation();
-	int getLastPTS(pts_t &pts);
-	int getFirstPTS(pts_t &pts);
-	void setTargetFD(int fd) { m_fd_dest = fd; }
-	void enableAccessPoints(bool enable) { m_ts_parser.enableAccessPoints(enable); }
-protected:
-	int asyncWrite(int len);
-	/* override */ int writeData(int len);
-	/* override */ void flush();
-	struct AsyncIO
-	{
-		struct aiocb aio;
-		unsigned char* buffer;
-		AsyncIO()
-		{
-			memset(&aio, 0, sizeof(struct aiocb));
-			buffer = NULL;
-		}
-		int wait();
-		int start(int fd, off_t offset, size_t nbytes, void* buffer);
-		int poll(); // returns 1 if busy, 0 if ready, <0 on error return
-		int cancel(int fd); // returns <0 on error, 0 cancelled, >0 bytes written?
-	};
-	eMPEGStreamParserTS m_ts_parser;
-	off_t m_current_offset;
-	int m_fd_dest;
-	typedef std::vector<AsyncIO> AsyncIOvector;
-	unsigned char* m_allocated_buffer;
-	AsyncIOvector m_aio;
-	AsyncIOvector::iterator m_current_buffer;
-	std::vector<int> m_buffer_use_histogram;
-};
 
 eDVBRecordFileThread::eDVBRecordFileThread(int packetsize, int bufferCount):
 	eFilePushThreadRecorder(
@@ -652,76 +608,67 @@ void eDVBRecordFileThread::flush()
 	}
 }
 
-class eDVBRecordStreamThread: public eDVBRecordFileThread
+int eDVBRecordStreamThread::writeData(int len)
 {
-public:
-	eDVBRecordStreamThread(int packetsize):
-		eDVBRecordFileThread(packetsize, /*bufferCount*/ 4)
-	{
-	}
-protected:
-	int writeData(int len)
-	{
-		len = asyncWrite(len);
-		if (len < 0)
-			return len;
-		// Cancel aio on this buffer before returning, streams should not be held up. So we CANCEL
-		// any request that hasn't finished on the second round.
-		int r = m_current_buffer->cancel(m_fd_dest);
-		switch (r)
-		{
-			//case 0: // that's one of these two:
-			case AIO_CANCELED:
-			case AIO_ALLDONE:
-				break;
-			case AIO_NOTCANCELED:
-				eDebug("[eDVBRecordStreamThread] failed to cancel, killing all waiting IO");
-				aio_cancel(m_fd_dest, NULL);
-				// Poll all open requests, because they are all in error state now.
-				for (AsyncIOvector::iterator it = m_aio.begin(); it != m_aio.end(); ++it)
-				{
-					it->poll();
-				}
-				break;
-			case -1:
-				eDebug("[eDVBRecordStreamThread] failed: %m");
-				return r;
-		}
-		// we want to have a consistent state, so wait for completion, just to be sure
-		r = m_current_buffer->wait();
-		if (r < 0)
-		{
-			eDebug("[eDVBRecordStreamThread] wait failed: %m");
-			return -1;
-		}
+	len = asyncWrite(len);
+	if (len < 0)
 		return len;
-	}
-	void flush()
+	// Cancel aio on this buffer before returning, streams should not be held up. So we CANCEL
+	// any request that hasn't finished on the second round.
+	int r = m_current_buffer->cancel(m_fd_dest);
+	switch (r)
 	{
-		eDebug("[eDVBRecordStreamThread] cancelling aio");
-		switch (aio_cancel(m_fd_dest, NULL))
-		{
-			case AIO_CANCELED:
-				eDebug("[eDVBRecordStreamThread] ok");
-				break;
-			case AIO_NOTCANCELED:
-				eDebug("[eDVBRecordStreamThread] not all cancelled");
-				break;
-			case AIO_ALLDONE:
-				eDebug("[eDVBRecordStreamThread] all done");
-				break;
-			case -1:
-				eDebug("[eDVBRecordStreamThread] failed: %m");
-				break;
-			default:
-				eDebug("[eDVBRecordStreamThread] unexpected return code");
-				break;
-		}
-		// Call inherited flush to clean up the rest.
-		eDVBRecordFileThread::flush();
+		//case 0: // that's one of these two:
+		case AIO_CANCELED:
+		case AIO_ALLDONE:
+			break;
+		case AIO_NOTCANCELED:
+			eDebug("[eDVBRecordStreamThread] failed to cancel, killing all waiting IO");
+			aio_cancel(m_fd_dest, NULL);
+			// Poll all open requests, because they are all in error state now.
+			for (AsyncIOvector::iterator it = m_aio.begin(); it != m_aio.end(); ++it)
+			{
+				it->poll();
+			}
+			break;
+		case -1:
+			eDebug("[eDVBRecordStreamThread] failed: %m");
+			return r;
 	}
-};
+	// we want to have a consistent state, so wait for completion, just to be sure
+	r = m_current_buffer->wait();
+	if (r < 0)
+	{
+		eDebug("[eDVBRecordStreamThread] wait failed: %m");
+		return -1;
+	}
+	return len;
+}
 
+void eDVBRecordStreamThread::flush()
+{
+	eDebug("[eDVBRecordStreamThread] cancelling aio");
+	switch (aio_cancel(m_fd_dest, NULL))
+	{
+		case AIO_CANCELED:
+			eDebug("[eDVBRecordStreamThread] ok");
+			break;
+		case AIO_NOTCANCELED:
+			eDebug("[eDVBRecordStreamThread] not all cancelled");
+			break;
+		case AIO_ALLDONE:
+			eDebug("[eDVBRecordStreamThread] all done");
+			break;
+		case -1:
+			eDebug("[eDVBRecordStreamThread] failed: %m");
+			break;
+		default:
+			eDebug("[eDVBRecordStreamThread] unexpected return code");
+			break;
+	}
+	// Call inherited flush to clean up the rest.
+	eDVBRecordFileThread::flush();
+}
 
 DEFINE_REF(eDVBTSRecorder);
 
@@ -758,7 +705,7 @@ RESULT eDVBTSRecorder::start()
 	snprintf(filename, 128, "/dev/dvb/adapter%d/demux%d", m_demux->adapter, m_demux->demux);
 eDebug("eDVBTSRecorder::start %s", filename);
 	m_source_fd = ::open(filename, O_RDONLY);
-	
+
 	if (m_source_fd < 0)
 	{
 		eDebug("FAILED to open demux (%s) in ts recoder (%m)", filename);
@@ -782,7 +729,7 @@ eDebug("eDVBTSRecorder::start %s", filename);
 		m_source_fd = -1;
 		return -3;
 	}
-	
+
 	::ioctl(m_source_fd, DMX_START);
 
 	if (!m_target_filename.empty())
@@ -810,7 +757,7 @@ RESULT eDVBTSRecorder::addPID(int pid)
 {
 	if (m_pids.find(pid) != m_pids.end())
 		return -1;
-	
+
 	m_pids.insert(std::pair<int,int>(pid, -1));
 	if (m_running)
 		startPID(pid);
@@ -821,10 +768,10 @@ RESULT eDVBTSRecorder::removePID(int pid)
 {
 	if (m_pids.find(pid) == m_pids.end())
 		return -1;
-		
+
 	if (m_running)
 		stopPID(pid);
-	
+
 	m_pids.erase(pid);
 	return 0;
 }
