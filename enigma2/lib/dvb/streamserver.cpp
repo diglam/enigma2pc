@@ -236,7 +236,7 @@ eStreamServer::eStreamServer()
 			int decoderindex;
 			FILE *file;
 			char filename[256];
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/decoder", index);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/decoder", index);
 			if (CFile::parseInt(&decoderindex, filename) < 0) break;
 			navigationInstances.push_back(new eNavigation(service_center, decoderindex));
 			encoderUser.push_back(NULL);
@@ -278,19 +278,19 @@ int eStreamServer::allocateEncoder(const eStreamClient *client, const std::strin
 		if (!encoderUser[i])
 		{
 			char filename[128];
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/bitrate", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/bitrate", i);
 			CFile::writeInt(filename, bitrate);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/width", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/width", i);
 			CFile::writeInt(filename, width);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/height", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/height", i);
 			CFile::writeInt(filename, height);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/framerate", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/framerate", i);
 			CFile::writeInt(filename, framerate);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/interlaced", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/interlaced", i);
 			CFile::writeInt(filename, interlaced);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/aspectratio", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/aspectratio", i);
 			CFile::writeInt(filename, aspectratio);
-			snprintf(filename, sizeof(filename), "/proc/stb/encoder/%d/apply", i);
+			snprintf(filename, sizeof(filename), "${sysconfdir}/stb/encoder/%d/apply", i);
 			CFile::writeInt(filename, 1);
 			if (navigationInstances[i]->playService(serviceref) >= 0)
 			{
