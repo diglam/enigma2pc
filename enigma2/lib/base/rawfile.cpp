@@ -33,7 +33,7 @@ int eRawFile::open(const char *filename)
 	scan();
 	m_current_offset = 0;
 	m_last_offset = 0;
-	m_fd = ::open(filename, O_RDONLY | O_LARGEFILE);
+	m_fd = ::open(filename, O_RDONLY | O_LARGEFILE | O_CLOEXEC);
 	posix_fadvise(m_fd, 0, 0, POSIX_FADV_SEQUENTIAL);
 	return m_fd;
 }
@@ -161,7 +161,7 @@ int eRawFile::openFileUncached(int nr)
 		snprintf(suffix, 5, ".%03d", nr);
 		filename += suffix;
 	}
-	return ::open(filename.c_str(), O_RDONLY | O_LARGEFILE);
+	return ::open(filename.c_str(), O_RDONLY | O_LARGEFILE | O_CLOEXEC);
 }
 
 off_t eRawFile::length()
