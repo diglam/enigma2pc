@@ -135,6 +135,9 @@ void eFilePushThread::thread()
 						break;
 					default:
 						eDebug("wait for driver eof aborted by signal");
+						/* Check m_stop after interrupted syscall. */
+						if (m_stop)
+							break;
 						continue;
 				}
 			}
