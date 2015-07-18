@@ -9,16 +9,16 @@
 
 eFilePushThread::eFilePushThread(int io_prio_class, int io_prio_level, int blocksize, size_t buffersize)
 	:prio_class(io_prio_class),
-	prio(io_prio_level),
-	m_sg(NULL),
-	m_stop(1),
-	m_send_pvr_commit(0),
-	m_stream_mode(0),
-	m_blocksize(blocksize),
-	m_buffersize(buffersize),
-	m_buffer((unsigned char *)malloc(buffersize)),
-	m_messagepump(eApp, 0),
-	m_run_state(0)
+	 prio(io_prio_level),
+	 m_sg(NULL),
+	 m_stop(1),
+	 m_send_pvr_commit(0),
+	 m_stream_mode(0),
+	 m_blocksize(blocksize),
+	 m_buffersize(buffersize),
+	 m_buffer((unsigned char *)malloc(buffersize)),
+	 m_messagepump(eApp, 0),
+	 m_run_state(0)
 {
 	if (m_buffer == NULL)
 		eFatal("Failed to allocate %d bytes", buffersize);
@@ -27,7 +27,7 @@ eFilePushThread::eFilePushThread(int io_prio_class, int io_prio_level, int block
 
 eFilePushThread::~eFilePushThread()
 {
-	stop();
+	stop(); /* eThread is borked, always call stop() from d'tor */
 	free(m_buffer);
 }
 
@@ -69,8 +69,9 @@ void eFilePushThread::thread()
 			m_current_position = current_span_offset;
 			bytes_read = 0;
 		}
+
 		size_t maxread = m_buffersize;
-		
+
 			/* if we have a source span, don't read past the end */
 		if (m_sg && maxread > current_span_remaining)
 			maxread = current_span_remaining;
@@ -145,9 +146,9 @@ void eFilePushThread::thread()
 			if (m_stop)
 				break;
 
-				/* in stream_mode, we are sending EOF events 
+				/* in stream_mode, we are sending EOF events
 				   over and over until somebody responds.
-				   
+
 				   in stream_mode, think of evtEOF as "buffer underrun occured". */
 			if (xineLib->end_of_stream == true)
 				sendEvent(evtEOF);
@@ -212,7 +213,7 @@ void eFilePushThread::thread()
 		if (m_stop == 0)
 			m_run_state = 1;
 	}
-	
+
 	} while (m_stop == 0);
 	eDebug("FILEPUSH THREAD STOP");
 }
@@ -229,20 +230,18 @@ void eFilePushThread::start(ePtr<iTsSource> &source, int fd_dest)
 
 void eFilePushThread::stop()
 {
-		/* if we aren't running, don't bother stopping. */
-//	if (!sync())
+	/* if we aren't running, don't bother stopping. */
 	if (m_stop == 1)
 		return;
 	m_stop = 1;
 	eDebug("eFilePushThread stopping thread");
 	m_run_cond.signal(); /* Break out of pause if needed */
 	sendSignal(SIGUSR1);
-	kill(0); /* Kill means join actually */
+	kill(); /* Kill means join actually */
 }
 
 void eFilePushThread::pause()
 {
-//	if (!sync())
 	if (m_stop == 1)
 	{
 		eWarning("eFilePushThread::pause called while not running");
@@ -262,10 +261,9 @@ void eFilePushThread::pause()
 
 void eFilePushThread::resume()
 {
-//	if (!sync())
 	if (m_stop != 2)
 	{
-		eWarning("eFilePushThread::resume called while not running");
+		eWarning("eFilePushThread::resume called while not paused");
 		return;
 	}
 	/* Resume the paused thread by resetting the flag and
@@ -400,13 +398,12 @@ void eFilePushThreadRecorder::start(int fd, ePtr<eDVBDemux> &demux)
 void eFilePushThreadRecorder::stop()
 {
 	/* if we aren't running, don't bother stopping. */
-//	if (!sync())
 	if (m_stop == 1)
 		return;
 	m_stop = 1;
 	eDebug("[eFilePushThreadRecorder] stopping thread."); /* just do it ONCE. it won't help to do this more than once. */
 	sendSignal(SIGUSR1);
-	kill(0);
+	kill();
 }
 
 void eFilePushThreadRecorder::sendEvent(int evt)
