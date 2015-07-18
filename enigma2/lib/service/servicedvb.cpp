@@ -602,7 +602,6 @@ static int reindex_work(const std::string& filename)
 	}
 
 	parser.stopSave();
-	f.close();
 
 	return 0;
 }
@@ -1256,8 +1255,6 @@ void eDVBServicePlay::serviceEvent(int event)
 		m_event((iPlayableService*)this, evHBBTVInfo);
 		break;
 	}
-	
-	
 }
 
 void eDVBServicePlay::serviceEventTimeshift(int event)
@@ -1377,7 +1374,7 @@ RESULT eDVBServicePlay::start()
 	else
 		m_event(this, evStart);
 
-	m_openpliPC_file = std::string("/tmp/ENIGMA_FIFO");	
+	m_openpliPC_file = std::string("/tmp/ENIGMA_FIFO");
 	m_openpliPC_fd = ::open(m_openpliPC_file.c_str(), O_RDWR);
 
 	if (m_is_stream)
@@ -1912,7 +1909,7 @@ int eDVBServicePlay::getInfo(int w)
 	case sAspect:
 	{
 		/*int aspect = -1; // openpliPC
-		if (m_decoder) 
+		if (m_decoder)
 			aspect = m_decoder->getVideoAspect();*/
 		int aspect = xineLib->getVideoAspect();
 
