@@ -24,10 +24,13 @@ protected:
 	eSingleLock m_lock;
 	int m_fd;
 private:
-	off_t m_splitsize, m_totallength, m_current_offset, m_base_offset, m_last_offset;
 	int m_nrfiles;
+	off_t m_splitsize;
+	off_t m_totallength;
+	off_t m_current_offset;
+	off_t m_base_offset;
+	off_t m_last_offset;
 	int m_current_file;
-	int m_fadvise_chunk;
 	std::string m_basename;
 
 	int close();

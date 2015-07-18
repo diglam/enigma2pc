@@ -11,14 +11,13 @@ eRawFile::eRawFile(int packetsize)
 	: iTsSource(packetsize)
 	, m_lock()
 	, m_fd(-1)
+	, m_nrfiles(0)
 	, m_splitsize(0)
 	, m_totallength(0)
 	, m_current_offset(0)
 	, m_base_offset(0)
 	, m_last_offset(0)
-	, m_nrfiles(0)
 	, m_current_file(0)
-	, m_fadvise_chunk(0)
 {
 }
 
