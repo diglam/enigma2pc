@@ -38,3 +38,4 @@ SystemInfo["StandbyLED"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/power/stand
 SystemInfo["WakeOnLAN"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/power/wol")) or fileCheck(eEnv.resolve("${sysconfdir}/stb/fp/wol"))
 SystemInfo["HasExternalPIP"] = not HardwareInfo().get_device_model().startswith("et9") and fileCheck(eEnv.resolve("${sysconfdir}/stb/vmpeg/1/external"))
 SystemInfo["VideoDestinationConfigurable"] = fileExists(eEnv.resolve("${sysconfdir}/stb/vmpeg/0/dst_left"))
+SystemInfo["hasPIPVisibleProc"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/vmpeg/1/visible"))
