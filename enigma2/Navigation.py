@@ -17,13 +17,13 @@ class Navigation:
 	def __init__(self):
 		if NavigationInstance.instance is not None:
 			raise NavigationInstance.instance
-		
+
 		NavigationInstance.instance = self
 		self.ServiceHandler = eServiceCenter.getInstance()
-		
+
 		import Navigation as Nav
 		Nav.navcore = self
-		
+
 		self.pnav = pNavigation()
 		self.pnav.m_event.get().append(self.dispatchEvent)
 		self.pnav.m_record_event.get().append(self.dispatchRecordEvent)
@@ -63,7 +63,7 @@ class Navigation:
 		oldref = self.currentlyPlayingServiceOrGroup
 		if ref and oldref and ref == oldref and not forceRestart:
 			print "ignore request to play already running service(1)"
-			return 0
+			return 1
 		print "playing", ref and ref.toString()
 		if ref is None:
 			self.stopService()
@@ -77,7 +77,7 @@ class Navigation:
 				print "playref", playref
 				if playref and oldref and playref == oldref and not forceRestart:
 					print "ignore request to play already running service(2)"
-					return 0
+					return 1
 				if not playref or (checkParentalControl and not parentalControl.isServicePlayable(playref, boundFunction(self.playService, checkParentalControl = False))):
 					self.stopService()
 					return 0
@@ -97,7 +97,7 @@ class Navigation:
 		elif oldref and InfoBarInstance and InfoBarInstance.servicelist.servicelist.setCurrent(oldref, adjust):
 			self.currentlyPlayingServiceOrGroup = InfoBarInstance.servicelist.servicelist.getCurrent()
 		return 1
-	
+
 	def getCurrentlyPlayingServiceReference(self):
 		return self.currentlyPlayingServiceReference
 
