@@ -10,7 +10,7 @@ from Components.MultiContent import MultiContentEntryText
 from Components.Sources.List import List
 from Components.Sources.Boolean import Boolean
 from Components.SystemInfo import SystemInfo
-
+from Components.VolumeControl import VolumeControl
 
 from enigma import iPlayableService, eTimer
 
@@ -28,7 +28,7 @@ class AudioSelection(Screen, ConfigListScreen):
 		self["key_green"] = Boolean(False)
 		self["key_yellow"] = Boolean(True)
 		self["key_blue"] = Boolean(False)
-		
+
 		ConfigListScreen.__init__(self, [])
 		self.infobar = infobar or self.session.infobar
 
@@ -49,6 +49,9 @@ class AudioSelection(Screen, ConfigListScreen):
 			"cancel": self.cancel,
 			"up": self.keyUp,
 			"down": self.keyDown,
+			"volumeUp": self.volumeUp,
+			"volumeDown": self.volumeDown,
+			"volumeMute": self.volumeMute,
 			"menu": self.openAutoLanguageSetup,
 			"1": self.keyNumberGlobal,
 			"2": self.keyNumberGlobal,
@@ -81,7 +84,7 @@ class AudioSelection(Screen, ConfigListScreen):
 		service = self.session.nav.getCurrentService()
 		self.audioTracks = audio = service and service.audioTracks()
 		n = audio and audio.getNumberOfTracks() or 0
-		
+
 		subtitlelist = self.getSubtitleList()
 
 		if self.settings.menupage.getValue() == PAGE_AUDIO:
@@ -166,7 +169,7 @@ class AudioSelection(Screen, ConfigListScreen):
 					print "plugin(s) installed but not displayed in the dialog box:", Plugins[1:]
 
 		elif self.settings.menupage.getValue() == PAGE_SUBTITLES:
-	
+
 			self.setTitle(_("Subtitle selection"))
 			conflist.append(('',))
 			conflist.append(('',))
@@ -174,7 +177,7 @@ class AudioSelection(Screen, ConfigListScreen):
 			self["key_green"].setBoolean(False)
 
 			idx = 0
-				
+
 			for x in subtitlelist:
 				number = str(x[1])
 				description = "?"
@@ -184,7 +187,7 @@ class AudioSelection(Screen, ConfigListScreen):
 				if self.selectedSubtitle and x[:4] == self.selectedSubtitle[:4]:
 					selected = "X"
 					selectedidx = idx
-					
+
 				try:
 					if x[4] != "und":
 						if LanguageCodes.has_key(x[4]):
@@ -245,7 +248,7 @@ class AudioSelection(Screen, ConfigListScreen):
 	def subtitlesEnabled(self):
 		try:
 			return self.infobar.subtitle_window.shown
-		except: 
+		except:
 			return False
 
 	def enableSubtitle(self, subtitle):
@@ -337,6 +340,15 @@ class AudioSelection(Screen, ConfigListScreen):
 				self.focus = FOCUS_STREAMS
 		elif self.focus == FOCUS_STREAMS:
 			self["streams"].selectNext()
+
+	def volumeUp(self):
+		VolumeControl.instance and VolumeControl.instance.volUp()
+
+	def volumeDown(self):
+		VolumeControl.instance and VolumeControl.instance.volDown()
+
+	def volumeMute(self):
+		VolumeControl.instance and VolumeControl.instance.volMute()
 
 	def keyNumberGlobal(self, number):
 		if number <= len(self["streams"].list):
