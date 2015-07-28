@@ -1795,6 +1795,9 @@ class InfoBarTimeshift:
 		#state = self.seekstate
 		self.activateTimeshiftEnd(False)
 
+	def callServiceStarted(self):
+		self.__serviceStarted()
+
 	def __seekableStatusChanged(self):
 		self["TimeshiftActivateActions"].setEnabled(not self.isSeekable() and self.timeshiftEnabled())
 		state = self.getSeek() is not None and self.timeshiftEnabled()
