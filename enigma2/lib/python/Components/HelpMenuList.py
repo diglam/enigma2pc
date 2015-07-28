@@ -39,19 +39,19 @@ class HelpMenuList(GUIComponent):
 
 				if flags & 8: # for long keypresses, prepend l_ into the key name.
 					name = (name[0], "long")
-					
+
 				entry = [ (actionmap, context, action, name ) ]
 
 				if isinstance(help, list):
 					self.extendedHelp = True
 					print "extendedHelpEntry found"
 					entry.extend((
-						(eListboxPythonMultiContent.TYPE_TEXT, 0, 0, 500, 26, 0, 0, help[0]),
-						(eListboxPythonMultiContent.TYPE_TEXT, 0, 28, 500, 20, 1, 0, help[1])
+						(eListboxPythonMultiContent.TYPE_TEXT, 0, 0, 600, 26, 0, 0, help[0]),
+						(eListboxPythonMultiContent.TYPE_TEXT, 0, 28, 600, 20, 1, 0, help[1])
 					))
 				else:
-					entry.append( (eListboxPythonMultiContent.TYPE_TEXT, 0, 0, 500, 28, 0, 0, help) )
-					
+					entry.append( (eListboxPythonMultiContent.TYPE_TEXT, 0, 0, 600, 28, 0, 0, help) )
+
 				l.append(entry)
 
 		self.l.setList(l)
