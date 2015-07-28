@@ -7,22 +7,22 @@ from Components.About import about
 from Components.ScrollLabel import ScrollLabel
 from Components.Button import Button
 
-from Tools.DreamboxHardware import getFPVersion
+from Tools.StbHardware import getFPVersion
 from enigma import eTimer
 
 class About(Screen):
 	def __init__(self, session):
 		Screen.__init__(self, session)
 
-		
+
 		AboutText = _("Hardware: ") + about.getHardwareTypeString() + "\n"
 		AboutText += _("Image: ") + about.getImageTypeString() + "\n"
 		AboutText += _("Kernel version: ") + about.getKernelVersionString() + "\n"
-		
+
 		EnigmaVersion = "Enigma: " + about.getEnigmaVersionString()
 		self["EnigmaVersion"] = StaticText(EnigmaVersion)
 		AboutText += EnigmaVersion + "\n"
-		
+
 		ImageVersion = _("Last upgrade: ") + about.getImageVersionString()
 		self["ImageVersion"] = StaticText(ImageVersion)
 		AboutText += ImageVersion + "\n"
@@ -35,7 +35,7 @@ class About(Screen):
 			AboutText += fp_version + "\n"
 
 		self["FPVersion"] = StaticText(fp_version)
-		
+
 		self["TunerHeader"] = StaticText(_("Detected NIMs:"))
 		AboutText += "\n" + _("Detected NIMs:") + "\n"
 
@@ -114,7 +114,7 @@ class TranslationInfo(Screen):
 
 		self["TranslatorName"] = StaticText(translator_name)
 
-		self["actions"] = ActionMap(["SetupActions"], 
+		self["actions"] = ActionMap(["SetupActions"],
 			{
 				"cancel": self.close,
 				"ok": self.close,
