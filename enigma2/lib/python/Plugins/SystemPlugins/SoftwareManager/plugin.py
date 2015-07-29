@@ -22,6 +22,7 @@ from Components.MultiContent import MultiContentEntryText, MultiContentEntryPixm
 from Components.SelectionList import SelectionList
 from Components.PluginComponent import plugins
 from Components.About import about
+from Components.PackageInfo import PackageInfoHandler
 from Components.Language import language
 from Components.AVSwitch import AVSwitch
 from Components.Task import job_manager
@@ -553,7 +554,7 @@ class SoftwareManagerInfo(Screen):
 			self['list'].setList(self.list)
 
 
-class PluginManager(Screen):
+class PluginManager(Screen, PackageInfoHandler):
 
 	skin = """
 		<screen name="PluginManager" position="center,center" size="560,440" title="Extensions management" >
@@ -1181,7 +1182,7 @@ class PluginManagerHelp(Screen):
 		self.close()
 
 
-class PluginDetails(Screen):
+class PluginDetails(Screen, PackageInfoHandler):
 	skin = """
 		<screen name="PluginDetails" position="center,center" size="600,440" title="Plugin details" >
 			<ePixmap pixmap="skin_default/buttons/red.png" position="0,0" size="140,40" alphatest="on" />
@@ -1199,6 +1200,7 @@ class PluginDetails(Screen):
 		self.skin_path = plugin_path
 		self.language = language.getLanguage()[:2] # getLanguage returns e.g. "fi_FI" for "language_country"
 		self.attributes = None
+		PackageInfoHandler.__init__(self, self.statusCallback, blocking = False)
 		self.directory = resolveFilename(SCOPE_METADIR)
 		if packagedata:
 			self.pluginname = packagedata[0]
@@ -1255,6 +1257,9 @@ class PluginDetails(Screen):
 
 	def pageDown(self):
 		self["detailtext"].pageDown()
+
+	def statusCallback(self, status, progress):
+		pass
 
 	def setInfos(self):
 		if self.attributes.has_key("screenshot"):
