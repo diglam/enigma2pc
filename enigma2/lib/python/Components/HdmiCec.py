@@ -3,7 +3,7 @@ from config import config, ConfigSelection, ConfigYesNo, ConfigSubsection, Confi
 from enigma import eHdmiCEC, eActionMap
 from Tools.StbHardware import getFPWasTimerWakeup
 from enigma import eTimer
-from sys import maxint
+maxint = 0x7FFFFFFF #from sys import maxint (not good for x64)
 
 config.hdmicec = ConfigSubsection()
 config.hdmicec.enabled = ConfigYesNo(default = True)
