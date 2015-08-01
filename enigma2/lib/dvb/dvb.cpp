@@ -100,9 +100,9 @@ eDVBResourceManager::eDVBResourceManager()
 
 	if (eDVBAdapterLinux::exist(0))
 	{
-			eDVBAdapterLinux *adapter = new eDVBAdapterLinux(0);
-			adapter->scanDevices();
-			addAdapter(adapter, true);
+		eDVBAdapterLinux *adapter = new eDVBAdapterLinux(0);
+		adapter->scanDevices();
+		addAdapter(adapter, true);
 	}
 
 	int fd = open(eEnv::resolve("${sysconfdir}/stb/info/model").c_str(), O_RDONLY);
@@ -167,8 +167,7 @@ void eDVBAdapterLinux::scanDevices()
 		struct stat s;
 		char filename[128];
 		sprintf(filename, "/dev/dvb/adapter%d/frontend%d", m_nr, num_fe);
-		if (stat(filename, &s))
-			break;
+		if (stat(filename, &s)) break;
 		eDVBFrontend *fe;
 		std::string name = filename;
 		std::map<std::string, std::string>::iterator it = mappedFrontendName.find(name);
@@ -590,8 +589,8 @@ void *eDVBUsbAdapter::vtunerPump()
 			}
 			if (FD_ISSET(demuxFd, &rset))
 			{
-				int size = singleRead(demuxFd, buffer, sizeof(buffer));
-				if (writeAll(vtunerFd, buffer, size) <= 0)
+				ssize_t size = singleRead(demuxFd, buffer, sizeof(buffer));
+				if (size > 0 && writeAll(vtunerFd, buffer, size) <= 0)
 				{
 					break;
 				}
@@ -1571,7 +1570,8 @@ void eDVBChannel::cueSheetEvent(int event)
 	switch (event)
 	{
 	case eCueSheet::evtSeek:
-		eDebug("seek.");fflush(stdout);
+		eDebug("seek.");
+		fflush(stdout);
 		flushPVR(m_cue->m_decoding_demux);
 		break;
 	case eCueSheet::evtSkipmode:
@@ -2020,6 +2020,7 @@ RESULT eDVBChannel::requestTsidOnid()
 
 RESULT eDVBChannel::getDemux(ePtr<iDVBDemux> &demux, int cap)
 {
+//	ePtr<eDVBAllocatedDemux> &our_demux = (cap & capDecode) ? m_decoder_demux : m_demux;
 	ePtr<eDVBAllocatedDemux> &our_demux = m_demux; // openpliPC
 
 	if (!m_frontend)
@@ -2126,7 +2127,7 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 			return -ENODEV;
 		}
 #else
-	/* OpenPliPC
+/* 		OpenPliPC
 		ePtr<eDVBAllocatedDemux> &demux = m_demux ? m_demux : m_decoder_demux;
 		if (demux)
 		{
@@ -2141,7 +2142,8 @@ RESULT eDVBChannel::playSource(ePtr<iTsSource> &source, const char *streaminfo_f
 		{
 			eDebug("no demux allocated yet.. so its not possible to open the dvr device!!");
 			return -ENODEV;
-		}*/
+		}
+*/
 #endif
 	}
 
