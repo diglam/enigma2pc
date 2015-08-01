@@ -603,7 +603,6 @@ static int reindex_work(const std::string& filename)
 	}
 
 	parser.stopSave();
-
 	return 0;
 }
 
@@ -627,6 +626,7 @@ eServiceFactoryDVB::eServiceFactoryDVB()
 	if (sc)
 	{
 		std::list<std::string> extensions;
+//		extensions.push_back("ts");
 		extensions.push_back("trp");
 		sc->addServiceFactory(eServiceFactoryDVB::id, this, extensions);
 		/*
@@ -1029,9 +1029,10 @@ eDVBServicePlay::eDVBServicePlay(const eServiceReference &ref, eDVBService *serv
 	CONNECT(m_service_handler.serviceEvent, eDVBServicePlay::serviceEvent);
 	CONNECT(m_service_handler_timeshift.serviceEvent, eDVBServicePlay::serviceEventTimeshift);
 	CONNECT(m_event_handler.m_eit_changed, eDVBServicePlay::gotNewEvent);
-//	CONNECT(m_subtitle_sync_timer->timeout, eDVBServicePlay::checkSubtitleTiming);
+/*	OpenPliPC	*/
 	xineLib = cXineLib::getInstance();
 	xine_connection = CONNECT(xineLib->m_event, eDVBServicePlay::video_event);
+/*	---------	*/
 	CONNECT(m_subtitle_sync_timer->timeout, eDVBServicePlay::checkSubtitleTiming);
 	CONNECT(m_nownext_timer->timeout, eDVBServicePlay::updateEpgCacheNowNext);
 }
@@ -1061,9 +1062,9 @@ eDVBServicePlay::~eDVBServicePlay()
 			meta.updateMeta(m_reference.path);
 		}
 	}
-
+/*	OpenPliPC	*/
 	xine_connection.disconnect();
-
+/*	---------	*/
 	if (m_subtitle_widget) m_subtitle_widget->destroy();
 }
 
@@ -1202,8 +1203,7 @@ void eDVBServicePlay::serviceEvent(int event)
 	}
 	case eDVBServicePMTHandler::eventNewProgramInfo:
 	{
-		eDebug("eventNewProgramInfo %d %d %d", m_timeshift_enabled, m_timeshift_active);
-
+		eDebug("eventNewProgramInfo %d %d", m_timeshift_enabled, m_timeshift_active);
 		if (m_timeshift_enabled)
 			updateTimeshiftPids();
 		if (!m_timeshift_active)
@@ -1216,7 +1216,7 @@ void eDVBServicePlay::serviceEvent(int event)
 		if (!m_timeshift_active)
 			m_event((iPlayableService*)this, evUpdatedInfo);
 
-                /* OpenPliPC */
+/*				OpenPliPC				*/
                 ePtr<iDVBDemux> demux;
                 if ((!m_is_pvr && !m_service_handler.getDataDemux(demux)) &  !m_timeshift_enabled)
                 {
@@ -1240,6 +1240,7 @@ void eDVBServicePlay::serviceEvent(int event)
                         printf("Start live TV END\n");
                 }
 
+/*	---------	*/
 //		m_event((iPlayableService*)this, evNewProgramInfo);
 		break;
 	}
@@ -1375,9 +1376,10 @@ RESULT eDVBServicePlay::start()
 	else
 		m_event(this, evStart);
 
+/*	OpenPliPC	*/
 	m_openpliPC_file = std::string("/tmp/ENIGMA_FIFO");
 	m_openpliPC_fd = ::open(m_openpliPC_file.c_str(), O_RDWR);
-
+/*	---------	*/
 	if (m_is_stream)
 	{
 		/*
@@ -1388,11 +1390,12 @@ RESULT eDVBServicePlay::start()
 		type = eDVBServicePMTHandler::streamclient;
 	}
 
-/*
+/*	OpenPliPC	( part moved ->[1] )
 	m_first_program_info = 1;
 	ePtr<iTsSource> source = createTsSource(service, packetsize);
 	m_service_handler.tuneExt(service, m_is_pvr, source, service.path.c_str(), m_cue, false, m_dvb_service, type, scrambled);
 */
+
 	if (m_is_pvr)
 	{
 		/* inject EIT if there is a stored one */
@@ -1408,17 +1411,17 @@ RESULT eDVBServicePlay::start()
 		}
 		m_event(this, evStart);
 	}
-
+/*	OpenPliPC	*/
 	cXineLib *xineLib = cXineLib::getInstance();
 	if (m_timeshift_changed)
 		xineLib->setScrambled(false);
 	else
 		xineLib->setScrambled(scrambled);
-
+//->[1]		
 	m_first_program_info = 1;
 	ePtr<iTsSource> source = createTsSource(service, packetsize);
 	m_service_handler.tuneExt(service, m_is_pvr, source, service.path.c_str(), m_cue, false, m_dvb_service, type, scrambled);
-
+/*	---------	*/
 	return 0;
 }
 
@@ -1461,7 +1464,7 @@ RESULT eDVBServicePlay::stop()
 
 	stopTimeshift(); /* in case timeshift was enabled, remove buffer etc. */
 
-	// stop openpliPC
+/*	OpenPliPC (stop)	*/
 	if (m_openpliPC_record) 
 	{
 		m_openpliPC_record->stop();
@@ -1472,7 +1475,7 @@ RESULT eDVBServicePlay::stop()
 		close(m_openpliPC_fd);
 		m_openpliPC_fd = -1;
 	}
-
+/*	---------	*/
 	m_service_handler_timeshift.free();
 	m_service_handler.free();
 
@@ -1636,10 +1639,14 @@ RESULT eDVBServicePlay::unpause()
 
 RESULT eDVBServicePlay::seekTo(pts_t to)
 {
-	eDebug("eDVBServicePlay::seekTo: jump %lld", to);fflush(stdout);
+	eDebug("eDVBServicePlay::seekTo: jump %lld", to);
+	fflush(stdout);
 
-	//if (!m_decode_demux) openpliPC
-	//	return -1;
+
+/*	OpenPliPC
+	if (!m_decode_demux)
+		return -1;
+*/
 
 	ePtr<iDVBPVRChannel> pvr_channel;
 
@@ -1649,8 +1656,10 @@ RESULT eDVBServicePlay::seekTo(pts_t to)
 	if (!m_cue)
 		return -1;
 
+/*	OpenPliPC	*/
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->SeekTo(to);
+/*	---------	*/
 	m_cue->seekTo(0, to);
 	m_dvb_subtitle_pages.clear();
 	m_subtitle_pages.clear();
@@ -1688,8 +1697,10 @@ RESULT eDVBServicePlay::seekRelative(int direction, pts_t to)
 		return 0;
 
 	m_cue->seekTo(mode, to);
+/*	OpenPliPC	*/
         cXineLib *xineLib = cXineLib::getInstance();
         xineLib->VideoGeriT(to/90*direction);
+/*	---------	*/
 	m_dvb_subtitle_pages.clear();
 	m_subtitle_pages.clear();
 
@@ -1715,12 +1726,14 @@ RESULT eDVBServicePlay::getPlayPosition(pts_t &pos)
 	int r = 0;
 
 		/* if there is a decoder, use audio or video PTS */
-	/*if (m_decoder) //openpliPC
+/*	OpenPliPC
+	if (m_decoder)
 	{
 		r = m_decoder->getPTS(0, pos);
 		if (r)
 			return r;
-	}*/
+	}
+*/
 	r = xineLib->getPTS(pos);
 	if (r)
 		return r;
@@ -1888,30 +1901,40 @@ int eDVBServicePlay::getInfo(int w)
 	switch (w)
 	{
 	case sVideoHeight:
-		//if (m_decoder) // openpliPC
-		//	return m_decoder->getVideoHeight();
+/*	OpenPliPC
+		if (m_decoder)
+			return m_decoder->getVideoHeight();
+*/
 		return xineLib->getVideoHeight();
 		break;
 	case sVideoWidth:
-		//if (m_decoder) // openpliPC
-		//	return m_decoder->getVideoWidth();
+/*	OpenPliPC
+		if (m_decoder)
+			return m_decoder->getVideoWidth();
+*/
 		return xineLib->getVideoWidth();
 		break;
 	case sFrameRate:
-//		if (m_decoder) // openpliPC
-//			return m_decoder->getVideoFrameRate();
+/*	OpenPliPC
+		if (m_decoder)
+			return m_decoder->getVideoFrameRate();
+*/
 		return xineLib->getVideoFrameRate();
 		break;
 	case sProgressive:
-//		if (m_decoder)
-//			return m_decoder->getVideoProgressive();
+/*	OpenPliPC	
+		if (m_decoder)
+			return m_decoder->getVideoProgressive();
+*/
 		return xineLib->getProgressive();
 		break;
 	case sAspect:
 	{
-		/*int aspect = -1; // openpliPC
+/*	OpenPliPC
+		int aspect = -1;
 		if (m_decoder)
-			aspect = m_decoder->getVideoAspect();*/
+			aspect = m_decoder->getVideoAspect();
+*/
 		int aspect = xineLib->getVideoAspect();
 
 		if (aspect == -1 && no_program_info)
@@ -2086,12 +2109,12 @@ RESULT eDVBServicePlay::selectTrack(unsigned int i)
 
 	if (m_decoder->set())
 		return -5;
-
+/*	OpenPliPC	*/
 	if (old_apid != m_current_audio_pid) { //compare old apid and new apid
 		cXineLib *xineLib = cXineLib::getInstance();
 		xineLib->selectAudioStream(i); // switch audio track
 	}
-
+/*	---------	*/
 	return ret;
 }
 
@@ -2488,13 +2511,15 @@ RESULT eDVBServicePlay::stopTimeshift(bool swToLive)
 {
 	if (!m_timeshift_enabled)
 		return -1;
-
+//->[2]
 	m_timeshift_enabled = 0;
 
 	if (swToLive)
 		switchToLive();
 
-//	m_timeshift_enabled = 0;
+/*	OpenPliPC	( part moved ->[2] )
+	m_timeshift_enabled = 0;
+*/
 
 	m_record->stop();
 	m_record = 0;
@@ -2625,8 +2650,10 @@ void eDVBServicePlay::setCutListEnable(int enable)
 
 void eDVBServicePlay::updateTimeshiftPids()
 {
-	/*if (!m_record) // openpliPC
-		return;*/
+/*	OpenPliPC
+	if (!m_record)
+		return;
+*/
 
 	eDVBServicePMTHandler::program program;
 	eDVBServicePMTHandler &h = m_timeshift_active ? m_service_handler_timeshift : m_service_handler;
@@ -2688,22 +2715,22 @@ void eDVBServicePlay::updateTimeshiftPids()
 				pids_to_record.begin(), pids_to_record.end(),
 				std::inserter(new_pids, new_pids.begin())
 				);
-		/* openpliPC changed*/
+		/* OpenPliPC changed*/
 		for (std::set<int>::iterator i(new_pids.begin()); i != new_pids.end(); ++i)
-    {
-			if (m_record)
-				m_record->addPID(*i);
-			if (m_openpliPC_record)
-				m_openpliPC_record->addPID(*i);
-    }
+		{
+		if (m_record)
+			m_record->addPID(*i);
+		if (m_openpliPC_record)
+			m_openpliPC_record->addPID(*i);
+		}
 
 		for (std::set<int>::iterator i(obsolete_pids.begin()); i != obsolete_pids.end(); ++i)
-    {
-			if (m_record)
-				m_record->removePID(*i);
-			if (m_openpliPC_record)
-				m_openpliPC_record->removePID(*i);
-    }
+		{
+		if (m_record)
+			m_record->removePID(*i);
+		if (m_openpliPC_record)
+			m_openpliPC_record->removePID(*i);
+		}
 
 		/* old Enigm2PC changed*/
 /*		if (m_record) {
@@ -2725,10 +2752,10 @@ void eDVBServicePlay::updateTimeshiftPids()
 
 		if (timing_pid != -1)
 		{
-			if (m_record)
-				m_record->setTimingPID(timing_pid, timing_pid_type, timing_stream_type);
-			if (m_openpliPC_record)
-				m_openpliPC_record->setTimingPID(timing_pid, timing_pid_type, timing_stream_type);
+		if (m_record)
+			m_record->setTimingPID(timing_pid, timing_pid_type, timing_stream_type);
+		if (m_openpliPC_record)
+			m_openpliPC_record->setTimingPID(timing_pid, timing_pid_type, timing_stream_type);
 		}
 	}
 }
@@ -2753,7 +2780,7 @@ void eDVBServicePlay::switchToLive()
 	/* free the timeshift service handler, we need the resources */
 	m_service_handler_timeshift.free();
 
-//Start LiveTV OpenPLiPC
+/* OpenPLiPC (Start LiveTV)	*/
 //	m_service_handler.free();
 	start();
 
@@ -2780,7 +2807,7 @@ void eDVBServicePlay::switchToLive()
 
 		printf("Start live TV END\n");
 	}
-
+/*	---------	*/
 	updateDecoder(true);
 }
 
@@ -2826,9 +2853,9 @@ ePtr<iTsSource> eDVBServicePlay::createTsSource(eServiceReferenceDVB &ref, int p
 	}
 	else
 	{
-    eRawFile *f = new eRawFile(packetsize);
+		eRawFile *f = new eRawFile(packetsize);
 		f->open(ref.path.c_str());
-    eDebug("eDVBServicePlay::createTsSource %s", ref.path.c_str()); 
+		eDebug("eDVBServicePlay::createTsSource %s", ref.path.c_str()); 
 		return ePtr<iTsSource>(f);
 	}
 }
@@ -2848,7 +2875,7 @@ void eDVBServicePlay::switchToTimeshift()
 	ePtr<iTsSource> source = createTsSource(r);
 	m_service_handler_timeshift.tuneExt(r, 1, source, m_timeshift_file.c_str(), m_cue, 0, m_dvb_service, eDVBServicePMTHandler::timeshift_playback, false); /* use the decoder demux for everything */
 
-/* stop openpliPC
+/*	OpenPliPC (stop)
 	if (m_openpliPC_record)
 	{
 		m_openpliPC_record->stop();
@@ -2864,7 +2891,7 @@ void eDVBServicePlay::switchToTimeshift()
 	pause();
 	updateDecoder(true); /* mainly to switch off PCR, and to set pause */
 
-// stop openpliPC
+/*	OpenPliPC (stop)	*/
         if (m_openpliPC_record)
         {
                 m_openpliPC_record->stop();
@@ -2875,7 +2902,7 @@ void eDVBServicePlay::switchToTimeshift()
                 close(m_openpliPC_fd);
                 m_openpliPC_fd = -1;
         }
-//
+/*	---------	*/
 }
 
 void eDVBServicePlay::updateDecoder(bool sendSeekableStateChanged)
@@ -3103,7 +3130,7 @@ void eDVBServicePlay::loadCuesheet()
 			m_cue_entries.insert(cueEntry(where, what));
 		}
 		fclose(f);
-		eDebug("%zd entries", m_cue_entries.size());
+		eDebug("cuts file has %zd entries", m_cue_entries.size());
 	} else
 		eDebug("cutfile not found!");
 
@@ -3131,7 +3158,7 @@ void eDVBServicePlay::saveCuesheet()
 
 		for (std::multiset<cueEntry>::iterator i(m_cue_entries.begin()); i != m_cue_entries.end(); ++i)
 		{
-			where = htobe64(i->where);		
+			where = htobe64(i->where);
 			what = htonl(i->what);
 			fwrite(&where, sizeof(where), 1, f);
 			fwrite(&what, sizeof(what), 1, f);
@@ -3437,8 +3464,10 @@ void eDVBServicePlay::newSubtitlePage(const eDVBTeletextSubtitlePage &page)
 	if (m_subtitle_widget)
 	{
 		pts_t pos = 0;
-		//if (m_decoder) // openpliPC
-		//	m_decoder->getPTS(0, pos);
+/*	OpenPliPC
+		if (m_decoder)
+			m_decoder->getPTS(0, pos);
+*/
 		xineLib->getPTS(pos);
 		int subtitledelay = 0;
 //		eDebug("got new subtitle page %lld %lld %d", pos, page.m_pts, page.m_have_pts);
@@ -3454,6 +3483,7 @@ void eDVBServicePlay::newSubtitlePage(const eDVBTeletextSubtitlePage &page)
 		}
 		else
 		{
+			/* check the setting for subtitle delay in live playback, either with pts, or without pts */
 			subtitledelay = eConfigManager::getConfigIntValue("config.subtitles.subtitle_bad_timing_delay", 0);
 			if (subtitledelay != 0)
 			{
@@ -3497,12 +3527,15 @@ void eDVBServicePlay::checkSubtitleTiming()
 
 		pts_t pos = 0;
 
-		//if (m_decoder) // openpliPC
-		//	m_decoder->getPTS(0, pos);
+/*	OpenPliPC
+		if (m_decoder)
+			m_decoder->getPTS(0, pos);
+*/
 		xineLib->getPTS(pos);
 
 //		eDebug("%lld %lld", pos, show_time);
 		int diff = show_time - pos;
+//		eDebug("Subtitle show %d page.pts=%lld pts=%lld diff=%d", type, show_time, pos, diff);
 
 		if ((diff/90)<20 || diff > 1800000 || (type == TELETEXT && !page.m_have_pts))
 		{
@@ -3532,8 +3565,10 @@ void eDVBServicePlay::newDVBSubtitlePage(const eDVBSubtitlePage &p)
 	if (m_subtitle_widget)
 	{
 		pts_t pos = 0;
-		//if (m_decoder) // openpliPC
-		//	m_decoder->getPTS(0, pos);
+/*	OpenPliPC
+		if (m_decoder)
+			m_decoder->getPTS(0, pos);
+*/
 		xineLib->getPTS(pos);
 		eDebug("got new subtitle page %lld %lld", pos, p.m_show_time);
 		if ( abs(pos-p.m_show_time)>1800000 && (m_is_pvr || m_timeshift_enabled))
@@ -3587,7 +3622,7 @@ void eDVBServicePlay::setAC3Delay(int delay)
 {
 	if (m_dvb_service)
 		m_dvb_service->setCacheEntry(eDVBService::cAC3DELAY, delay ? delay : -1);
-	if (m_decoder) 
+	if (m_decoder)
 	{
 		m_decoder->setAC3Delay(delay + eConfigManager::getConfigIntValue("config.av.generalAC3delay"));
 	}
@@ -3597,7 +3632,7 @@ void eDVBServicePlay::setPCMDelay(int delay)
 {
 	if (m_dvb_service)
 		m_dvb_service->setCacheEntry(eDVBService::cPCMDELAY, delay ? delay : -1);
-	if (m_decoder) 
+	if (m_decoder)
 	{
 		m_decoder->setPCMDelay(delay + eConfigManager::getConfigIntValue("config.av.generalPCMdelay"));
 	}
