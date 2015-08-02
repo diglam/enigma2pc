@@ -4,40 +4,22 @@
 [account]
 user                          = tuner
 pwd                           = tuner
-disabled                      = 0
-expdate                       = 
-group                         = 1
-hostname                      = 
-uniq                          = 0
-sleep                         = 0
-monlevel                      = 2
-services                      = 
 #caid                          = 0500:4AE1
-betatunnel                    = 
-ident                         = 0500:040600,050B00,042700;4AE1:000000
-chid                          = 
-cccmaxhops                    = 10
+monlevel                      = 2
 keepalive                     = 1
+group                         = 1
+#ident                         = 0500:040600,050B00,042700;4AE1:000000
 numusers                      = 0
 penalty                       = 0
 
 [account]
 user                          = tuner2
 pwd                           = tuner2
-disabled                      = 0
-expdate                       = 
-group                         = 1
-hostname                      = 
-uniq                          = 0
-sleep                         = 0
+#caid                          = 4AE1
 monlevel                      = 2
-services                      = 
-caid                          = 4AE1
-betatunnel                    = 
-ident                         = 4AE1:000000
-chid                          = 
-cccmaxhops                    = 10
 keepalive                     = 1
+group                         = 1
+#ident                         = 4AE1:000000
 numusers                      = 0
 penalty                       = 0
 
