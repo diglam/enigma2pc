@@ -81,16 +81,17 @@ class VideoFinetune(Screen):
 
 		self.basic_colors = [RGB(255, 255, 255), RGB(255, 255, 0), RGB(0, 255, 255), RGB(0, 255, 0), RGB(255, 0, 255), RGB(255, 0, 0), RGB(0, 0, 255), RGB(0, 0, 0)]
 
-		if fileExists("/proc/stb/fb/dst_left"):
-			self.left = open("/proc/stb/fb/dst_left", "r").read()
-			self.width = open("/proc/stb/fb/dst_width", "r").read()
-			self.top = open("/proc/stb/fb/dst_top", "r").read()
-			self.height = open("/proc/stb/fb/dst_height", "r").read()
-			open("/proc/stb/fb/dst_left", "w").write("00000000")
-			open("/proc/stb/fb/dst_width", "w").write("000002d0")
-			open("/proc/stb/fb/dst_top", "w").write("00000000")
-			open("/proc/stb/fb/dst_height", "w").write("0000000240")
-			self.onClose.append(self.__close)
+		if fileExists("/usr/local/e2/etc/stb/fb/dst_left"):
+			self.left = open("/usr/local/e2/etc/stb/fb/dst_left", "r").read()
+			self.width = open("/usr/local/e2/etc/stb/fb/dst_width", "r").read()
+			self.top = open("/usr/local/e2/etc/stb/fb/dst_top", "r").read()
+			self.height = open("/usr/local/e2/etc/stb/fb/dst_height", "r").read()
+			if self.left != "00000000" or self.top != "00000000" or self.width != "000002d0" or self.height != "0000000240":
+				open("/usr/local/e2/etc/stb/fb/dst_left", "w").write("00000000")
+				open("/usr/local/e2/etc/stb/fb/dst_width", "w").write("000002d0")
+				open("/usr/local/e2/etc/stb/fb/dst_top", "w").write("00000000")
+				open("/usr/local/e2/etc/stb/fb/dst_height", "w").write("0000000240")
+				self.onClose.append(self.__close)
 
 		self["actions"] = NumberActionMap(["InputActions", "OkCancelActions"],
 		{
@@ -107,10 +108,10 @@ class VideoFinetune(Screen):
 		self.testpic_brightness()
 
 	def __close(self):
-		open("/proc/stb/fb/dst_left", "w").write(self.left)
-		open("/proc/stb/fb/dst_width", "w").write(self.width)
-		open("/proc/stb/fb/dst_top", "w").write(self.top)
-		open("/proc/stb/fb/dst_height", "w").write(self.height)
+		open("/usr/local/e2/etc/stb/fb/dst_left", "w").write(self.left)
+		open("/usr/local/e2/etc/stb/fb/dst_width", "w").write(self.width)
+		open("/usr/local/e2/etc/stb/fb/dst_top", "w").write(self.top)
+		open("/usr/local/e2/etc/stb/fb/dst_height", "w").write(self.height)
 
 	def keyNumber(self, key):
 		(self.testpic_brightness, self.testpic_contrast, self.testpic_colors, self.testpic_filter, self.testpic_gamma, self.testpic_overscan, self.testpic_fullhd)[key-1]()
@@ -151,7 +152,7 @@ class VideoFinetune(Screen):
 			if i < 2:
 				c.writeText(x + width, offset, width, eh, RGB(255, 255, 255), RGB(0,0,0), gFont("Regular", 20), "%d." % (i+1))
 
-		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,255,255), RGB(0,0,0), gFont("Regular", 40), 
+		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,255,255), RGB(0,0,0), gFont("Regular", 40),
 			_("Brightness"))
 		c.writeText(xres / 10, yres / 6, xres / 2, yres * 4 / 6, RGB(255,255,255), RGB(0,0,0), gFont("Regular", 20),
 			_("If your TV has a brightness or contrast enhancement, disable it. If there is something called \"dynamic\", "
@@ -189,11 +190,11 @@ class VideoFinetune(Screen):
 
 			c.fill(x, offset, width, eh, RGB(col, col, col))
 			if col == 185 or col == 235 or col == 255:
-				c.fill(x, offset, width, 2, RGB(0,0,0)) 
+				c.fill(x, offset, width, 2, RGB(0,0,0))
 			if i >= 13:
 				c.writeText(x + width, offset, width, eh, RGB(0, 0, 0), RGB(255, 255, 255), gFont("Regular", 20), "%d." % (i-13+1))
 
-		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,0,0), RGB(255,255,255), gFont("Regular", 40), 
+		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,0,0), RGB(255,255,255), gFont("Regular", 40),
 			_("Contrast"))
 		c.writeText(xres / 10, yres / 6, xres / 2, yres * 4 / 6, RGB(0,0,0), RGB(255,255,255), gFont("Regular", 20),
 			_("Now, use the contrast setting to turn up the brightness of the background as much as possible, "
@@ -252,7 +253,7 @@ class VideoFinetune(Screen):
 				if i == 0:
 					self.bbox(x, offset, width, eh, RGB(0,0,0), bbw, bbh)
 
-		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,0,0), RGB(255,255,255), gFont("Regular", 40), 
+		c.writeText(xres / 10, yres / 6 - 40, xres * 3 / 5, 40, RGB(128,0,0), RGB(255,255,255), gFont("Regular", 40),
 			("Color"))
 		c.writeText(xres / 10, yres / 6, xres / 2, yres * 4 / 6, RGB(0,0,0), RGB(255,255,255), gFont("Regular", 20),
 			_("Adjust the color settings so that all the color shades are distinguishable, but appear as saturated as possible. "
