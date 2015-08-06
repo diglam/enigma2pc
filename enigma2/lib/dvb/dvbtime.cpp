@@ -24,10 +24,7 @@ void setRTC(time_t time)
 		if (fprintf(f, "%u", (unsigned int)time))
 			prev_time = time;
 		else
-    {
-			std::string err= "write " + eEnv::resolve("${sysconfdir}/stb/fp/rtc") + "failed (%m)";
-			eDebug(err.c_str());
-    }
+			eDebug("write /usr/local/e2/etc/stb/fp/rtc failed (%m)");
 		fclose(f);
 	}
 	else
@@ -53,10 +50,7 @@ time_t getRTC()
 		// sanity check to detect corrupt atmel firmware
 		unsigned int tmp;
 		if (fscanf(f, "%u", &tmp) != 1)
-    {
-			std::string err= "read " + eEnv::resolve("${sysconfdir}/stb/fp/rtc") + " failed (%m)";
-			eDebug(err.c_str());
-    }  
+			eDebug("read /usr/local/e2/etc/stb/fp/rtc failed (%m)");
 		else
 			rtc_time=time(0);
 		fclose(f);
@@ -74,7 +68,7 @@ time_t getRTC()
 	return rtc_time != prev_time ? rtc_time : 0;
 }
 
-time_t parseDVBtime(__u8 t1, __u8 t2, __u8 t3, __u8 t4, __u8 t5, __u16 *hash)
+time_t parseDVBtime(uint8_t t1, uint8_t t2, uint8_t t3, uint8_t t4, uint8_t t5, uint16_t *hash)
 {
 	tm t;
 	t.tm_sec=fromBCD(t5);
@@ -116,7 +110,7 @@ void TDT::ready(int error)
 	eDVBLocalTimeHandler::getInstance()->updateTime(error, chan, ++update_count);
 }
 
-int TDT::createTable(unsigned int nr, const __u8 *data, unsigned int max)
+int TDT::createTable(unsigned int nr, const uint8_t *data, unsigned int max)
 {
 	if ( data && (data[0] == 0x70 || data[0] == 0x73 ))
 	{
@@ -317,7 +311,7 @@ void eDVBLocalTimeHandler::updateTime( time_t tp_time, eDVBChannel *chan, int up
 				/*emit*/ m_timeUpdated();
 			}
 			else
-				eDebug("[eDVBLocalTimerHandler] shit RTC not ready :(");
+				eDebug("[eDVBLocalTimerHandler]    getRTC returned time=0. RTC problem?");
 		}
 	}
 	else

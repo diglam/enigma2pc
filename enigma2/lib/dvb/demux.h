@@ -10,7 +10,7 @@ class eDVBSectionReader: public iDVBSectionReader, public Object
 {
 	DECLARE_REF(eDVBSectionReader);
 	int fd;
-	Signal1<void, const __u8*> read;
+	Signal1<void, const uint8_t*> read;
 	ePtr<eDVBDemux> demux;
 	int active;
 	int checkcrc;
@@ -22,14 +22,14 @@ public:
 	RESULT setBufferSize(int size);
 	RESULT start(const eDVBSectionFilterMask &mask);
 	RESULT stop();
-	RESULT connectRead(const Slot1<void,const __u8*> &read, ePtr<eConnection> &conn);
+	RESULT connectRead(const Slot1<void,const uint8_t*> &read, ePtr<eConnection> &conn);
 };
 
 class eDVBPESReader: public iDVBPESReader, public Object
 {
 	DECLARE_REF(eDVBPESReader);
 	int m_fd;
-	Signal2<void, const __u8*, int> m_read;
+	Signal2<void, const uint8_t*, int> m_read;
 	ePtr<eDVBDemux> m_demux;
 	int m_active;
 	void data(int);
@@ -40,7 +40,7 @@ public:
 	RESULT setBufferSize(int size);
 	RESULT start(int pid);
 	RESULT stop();
-	RESULT connectRead(const Slot2<void,const __u8*, int> &read, ePtr<eConnection> &conn);
+	RESULT connectRead(const Slot2<void,const uint8_t*, int> &read, ePtr<eConnection> &conn);
 };
 
 class eDVBRecordFileThread: public eFilePushThreadRecorder

@@ -7,6 +7,7 @@
 #include <sys/sysinfo.h>
 #include <sys/mman.h>
 
+//#define SHOW_WRITE_TIME
 static int determineBufferCount()
 {
 	struct sysinfo si;
@@ -184,7 +185,7 @@ bool eDVBDemux::decrypt(uint8_t *data, int len, int &packetsCount) {
 
 void eDVBSectionReader::data(int)
 {
-	__u8 data[4096]; // max. section size
+	uint8_t data[4096]; // max. section size
 	int r;
 	r = ::read(fd, data, 4096);
 	if(r < 0)
@@ -285,7 +286,7 @@ RESULT eDVBSectionReader::stop()
 	return 0;
 }
 
-RESULT eDVBSectionReader::connectRead(const Slot1<void,const __u8*> &r, ePtr<eConnection> &conn)
+RESULT eDVBSectionReader::connectRead(const Slot1<void,const uint8_t*> &r, ePtr<eConnection> &conn)
 {
 	conn = new eConnection(this, read.connect(r));
 	return 0;
@@ -295,7 +296,7 @@ void eDVBPESReader::data(int)
 {
 	while (1)
 	{
-		__u8 buffer[16384];
+		uint8_t buffer[16384];
 		int r;
 		r = ::read(m_fd, buffer, 16384);
 		if (!r)
@@ -387,7 +388,7 @@ RESULT eDVBPESReader::stop()
 	return 0;
 }
 
-RESULT eDVBPESReader::connectRead(const Slot2<void,const __u8*,int> &r, ePtr<eConnection> &conn)
+RESULT eDVBPESReader::connectRead(const Slot2<void,const uint8_t*,int> &r, ePtr<eConnection> &conn)
 {
 	conn = new eConnection(this, m_read.connect(r));
 	return 0;
@@ -487,7 +488,7 @@ int eDVBRecordFileThread::AsyncIO::cancel(int fd)
 int eDVBRecordFileThread::AsyncIO::poll()
 {
 	if (aio.aio_buf == NULL)
-               return 0;
+		return 0;
 	if (aio_error(&aio) == EINPROGRESS)
 	{
 		return 1;
@@ -581,7 +582,6 @@ int eDVBRecordFileThread::writeData(int len)
 	int r = m_current_buffer->wait();
 	if (r < 0)
 		return -1;
-
 	return len;
 }
 
@@ -689,7 +689,8 @@ eDVBTSRecorder::~eDVBTSRecorder()
 }
 
 RESULT eDVBTSRecorder::start()
-{eDebug("eDVBTSRecorder::start");
+{
+	eDebug("eDVBTSRecorder::start");
 	std::map<int,int>::iterator i(m_pids.begin());
 
 	if (m_running)
@@ -703,7 +704,8 @@ RESULT eDVBTSRecorder::start()
 
 	char filename[128];
 	snprintf(filename, 128, "/dev/dvb/adapter%d/demux%d", m_demux->adapter, m_demux->demux);
-eDebug("eDVBTSRecorder::start %s", filename);
+	eDebug("eDVBTSRecorder::start %s", filename);
+
 	m_source_fd = ::open(filename, O_RDONLY | O_CLOEXEC);
 
 	if (m_source_fd < 0)
@@ -877,7 +879,7 @@ RESULT eDVBTSRecorder::connectEvent(const Slot1<void,int> &event, ePtr<eConnecti
 RESULT eDVBTSRecorder::startPID(int pid)
 {
 	while(true) {
-		__u16 p = pid;
+		uint16_t p = pid;
 		if (::ioctl(m_source_fd, DMX_ADD_PID, &p) < 0) {
 			perror("DMX_ADD_PID");
 			if (errno == EAGAIN || errno == EINTR) {
@@ -896,7 +898,7 @@ void eDVBTSRecorder::stopPID(int pid)
 	if (m_pids[pid] != -1)
 	{
 		while(true) {
-			__u16 p = pid;
+			uint16_t p = pid;
 			if (::ioctl(m_source_fd, DMX_REMOVE_PID, &p) < 0) {
 				perror("DMX_REMOVE_PID");
 				if (errno == EAGAIN || errno == EINTR) {
