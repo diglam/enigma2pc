@@ -20,9 +20,8 @@ class HardwareInfo:
 
 		print "Scanning hardware info"
 		# Version
-#		if os.path.exists("/proc/stb/info/version"):
-		if os.path.exists(eEnv.resolve("${sysconfdir}/stb/info/model")):
-			self.device_version = open(eEnv.resolve("${sysconfdir}/stb/info/model")).read().strip()
+		if os.path.exists(eEnv.resolve("${sysconfdir}/stb/info/version")):
+			self.device_version = open(eEnv.resolve("${sysconfdir}/stb/info/version")).read().strip()
 
 		# Revision
 		if os.path.exists(eEnv.resolve("${sysconfdir}/stb/info/board_revision")):
