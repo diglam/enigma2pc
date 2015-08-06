@@ -1042,7 +1042,7 @@ class ConfigSelectionNumber(ConfigSelection):
 		while step <= max:
 			choices.append(str(step))
 			step += stepwidth
-		
+
 		ConfigSelection.__init__(self, choices, default)
 
 	def getValue(self):
@@ -1682,9 +1682,7 @@ class Config(ConfigSubsection):
 			print "Config: Couldn't write %s" % filename
 
 	def loadFromFile(self, filename, base_file=True):
-		f = open(filename, "r")
-		self.unpickle(f.readlines(), base_file)
-		f.close()
+		self.unpickle(open(filename, "r"), base_file)
 
 config = Config()
 config.misc = ConfigSubsection()
