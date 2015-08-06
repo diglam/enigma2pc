@@ -3,7 +3,6 @@
 #include <lib/base/estring.h>
 #include <lib/base/nconfig.h>
 
-
 std::map<eSubtitleWidget::subfont_t, eSubtitleWidget::eSubtitleStyle> eSubtitleWidget::subtitleStyles;
 
 eSubtitleWidget::eSubtitleWidget(eWidget *parent)
@@ -23,7 +22,7 @@ void eSubtitleWidget::setPage(const eDVBTeletextSubtitlePage &p)
 	m_page = p;
 	m_page.clear();
 	m_page_ok = 1;
-	invalidate(m_visible_region);  // invalidate old visible regions
+	invalidate(m_visible_region); // invalidate old visible regions
 	m_visible_region.rects.clear();
 
 	unsigned int elements = newpage.m_elements.size();
@@ -44,10 +43,10 @@ void eSubtitleWidget::setPage(const eDVBTeletextSubtitlePage &p)
 			default:
 			case 1: /* white */
 				color = gRGB(255, 255, 255);
-			break;
+				break;
 			case 2: /* yellow */
 				color = gRGB(255, 255, 0);
-			break;
+				break;
 		}
 
 		if (!original_position)
@@ -114,14 +113,14 @@ void eSubtitleWidget::setPage(const eDVBTeletextSubtitlePage &p)
 		}
 	}
 	m_hide_subtitles_timer->start(7500, true);
-	invalidate(m_visible_region);  // invalidate new regions
+	invalidate(m_visible_region); // invalidate new regions
 }
 
 void eSubtitleWidget::setPage(const eDVBSubtitlePage &p)
 {
 	eDebug("setPage");
 	m_dvb_page = p;
-	invalidate(m_visible_region);  // invalidate old visible regions
+	invalidate(m_visible_region); // invalidate old visible regions
 	m_visible_region.rects.clear();
 	int line = 0;
 	int original_position = eConfigManager::getConfigIntValue("config.subtitles.dvb_subtitles_original_position");
@@ -148,7 +147,7 @@ void eSubtitleWidget::setPage(const eDVBSubtitlePage &p)
 	}
 	m_dvb_page_ok = 1;
 	m_hide_subtitles_timer->start(7500, true);
-	invalidate(m_visible_region);  // invalidate new regions
+	invalidate(m_visible_region); // invalidate new regions
 }
 
 void eSubtitleWidget::setPage(const ePangoSubtitlePage &p)
@@ -158,7 +157,7 @@ void eSubtitleWidget::setPage(const ePangoSubtitlePage &p)
 
 	m_pango_page = p;
 	m_pango_page_ok = 1;
-	invalidate(m_visible_region);  // invalidate old visible regions
+	invalidate(m_visible_region); // invalidate old visible regions
 	m_visible_region.rects.clear();
 
 	lowerborder = eConfigManager::getConfigIntValue("config.subtitles.subtitle_position", 50);
@@ -189,12 +188,11 @@ void eSubtitleWidget::setPage(const ePangoSubtitlePage &p)
 	}
 
 	m_hide_subtitles_timer->start(m_pango_page.m_timeout, true);
-	invalidate(m_visible_region);  // invalidate new regions
+	invalidate(m_visible_region); // invalidate new regions
 }
 
 void eSubtitleWidget::clearPage()
 {
-	eDebug("subtitle timeout... hide");
 	m_page_ok = 0;
 	m_dvb_page_ok = 0;
 	m_pango_page_ok = 0;
@@ -206,14 +204,14 @@ void eSubtitleWidget::setPixmap(ePtr<gPixmap> &pixmap, gRegion changed, eRect pi
 {
 	m_pixmap = pixmap;
 	m_pixmap_dest = pixmap_dest; /* this is in a virtual 720x576 cage */
-	
+
 		/* incoming "changed" regions are relative to the physical pixmap area, so they have to be scaled to the virtual pixmap area, then to the screen */
 	changed.scale(m_pixmap_dest.width(), 720, m_pixmap_dest.height(), 576);
 	changed.moveBy(ePoint(m_pixmap_dest.x(), m_pixmap_dest.y()));
 
 	if (pixmap->size().width() && pixmap->size().height())
 		changed.scale(size().width(), pixmap->size().width(), size().height(), pixmap->size().height());
-	
+
 	invalidate(changed);
 }
 
@@ -317,7 +315,7 @@ int eSubtitleWidget::event(int event, void *data, void *data2)
 			for (std::list<eDVBSubtitleRegion>::iterator it(m_dvb_page.m_regions.begin()); it != m_dvb_page.m_regions.end(); ++it)
 			{
 				eRect r = eRect(it->m_position, it->m_pixmap->size());
-				r.scale(size().width(), m_dvb_page.m_display_size.width(), size().height(),  m_dvb_page.m_display_size.height());
+				r.scale(size().width(), m_dvb_page.m_display_size.width(), size().height(), m_dvb_page.m_display_size.height());
 				painter.blitScale(it->m_pixmap, r);
 			}
 		}
@@ -336,4 +334,3 @@ void eSubtitleWidget::setFontStyle(subfont_t face, gFont *font, int haveColor, c
 	subtitleStyles[face].border_color = borderCol;
 	subtitleStyles[face].border_width = borderWidth;
 }
-
