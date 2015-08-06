@@ -676,18 +676,22 @@ void eEPGCache::sectionRead(const uint8_t *data, int source, channel_data *chann
 	if ( ptr >= len )
 		return;
 
-        int onid = HILO(eit->original_network_id);
-        int tsid  = HILO(eit->transport_stream_id);
+#if 0
+		/*
+		 * disable for now, as this hack breaks EIT parsing for
+		 * services with a low segment_last_table_id
+		 *
+		 * Multichoice should be the exception, not the rule...
+		 */
 
 	// This fixed the EPG on the Multichoice irdeto systems
 	// the EIT packet is non-compliant.. their EIT packet stinks
-	/*
-	 * Make an exception for Ekrans (TricolorTV) (tsid 0x07, onid 0xFFFF),
-	 * which have segment_last_table_id is 0x19 (data[ptr-1] == 25)
-	 */
-	if ( data[ptr-1] < 0x40 && !(tsid == 7 && onid == 0xFFFF) )
+	if ( data[ptr-1] < 0x40 )
 		--ptr;
+#endif
 
+	int onid = HILO(eit->original_network_id);
+	int tsid  = HILO(eit->transport_stream_id);
 
 	// Cablecom HACK .. tsid / onid in eit data are incorrect.. so we use
 	// it from running channel (just for current transport stream eit data)
