@@ -14,7 +14,7 @@ def getImageVersionString():
 			return time.strftime("%b %e %Y %H:%M:%S", tm)
 	except:
 		pass
-	return "unavailable"
+	return _("unavailable")
 
 def getEnigmaVersionString():
 	import enigma
@@ -27,27 +27,27 @@ def getKernelVersionString():
 	try:
 		return open("/proc/version","r").read().split(' ', 4)[2].split('-',2)[0]
 	except:
-		return "unknown"
+		return _("unknown")
 
-def getHardwareTypeString():                                                    
+def getHardwareTypeString():
 #	try:
-#		if os.path.isfile("/usr/local/e2/etc/stb/info/boxtype"):                            
+#		if os.path.isfile("/usr/local/e2/etc/stb/info/boxtype"):
 #			return open("/usr/local/e2/etc/stb/info/boxtype").read().strip().upper() + " (" + open("/usr/local/e2/etc/stb/info/board_revision").read().strip() + "-" + open("/usr/local/e2/etc/stb/info/version").read().strip() + ")"
-#		if os.path.isfile("/usr/local/e2/etc/stb/info/vumodel"):                            
-#			return "VU+" + open("/usr/local/e2/etc/stb/info/vumodel").read().strip().upper() + "(" + open("/usr/local/e2/etc/stb/info/version").read().strip().upper() + ")" 
-#		if os.path.isfile("/usr/local/e2/etc/stb/info/model"):                              
-#			return open("/usr/local/e2/etc/stb/info/model").read().strip().upper()      
+#		if os.path.isfile("/usr/local/e2/etc/stb/info/vumodel"):
+#			return "VU+" + open("/usr/local/e2/etc/stb/info/vumodel").read().strip().upper() + "(" + open("/usr/local/e2/etc/stb/info/version").read().strip().upper() + ")"
+#		if os.path.isfile("/usr/local/e2/etc/stb/info/model"):
+#			return open("/usr/local/e2/etc/stb/info/model").read().strip().upper()
 #	except:
 #		pass
-#	return "Unavailable"                                                    
+#	return _("unavailable")
 	return HardwareInfo().get_device_string()
-                                                                                
-def getImageTypeString():                                                             
-	try:                                                            
+
+def getImageTypeString():
+	try:
 		return open("/etc/issue").readlines()[-2].capitalize().strip()[:-6]
-	except:                                                         
-		pass                                                    
-	return "Undefined" 
+	except:                                
+		pass
+	return _("undefined")
 
 # For modules that do "from About import about"
 about = sys.modules[__name__]
