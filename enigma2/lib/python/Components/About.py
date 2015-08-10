@@ -44,16 +44,15 @@ def getCPUInfoString():
 	try:
 		cpu_count = 0
 		for line in open("/proc/cpuinfo").readlines():
-			line = line.replace("\t","").replace("\n","").split(":")
-			if line[0] == "system type":
-				processor = line[1].strip().split(" ")[0]
-			if line[0] == "cpu MHz":
-				cpu_speed = "%1.0f" % float(line[1].strip())
-				cpu_count += 1
-		return "%s %s MHz (%d %s)" % (processor, cpu_speed, cpu_count, cpu_count > 1 and "cores" or "core")
+		        line = [x.strip() for x in line.strip().split(":")]
+		        if line[0] == "system type":
+		                processor = line[1].split()[0]
+		        if line[0] == "cpu MHz":
+		                cpu_speed = "%1.0f" % float(line[1])
+		                cpu_count += 1
+		print "%s %s MHz (%d %s)" % (processor, cpu_speed, cpu_count, cpu_count > 1 and "cores" or "core")
 	except:
 		return _("undefined")
-
 
 # For modules that do "from About import about"
 about = sys.modules[__name__]
