@@ -135,7 +135,7 @@ void eVideoWidget::updatePosition(int disable)
 	if (!disable)
 	{
 		cXineLib* xineLib = cXineLib::getInstance();
-		xineLib->setVideoWindow(left, top, width, height);
+		xineLib->setVideoWindow(pos.left(), pos.top(), pos.width(), pos.height());
 		setPosition(m_decoder, left, top, width, height);
 		pendingFullsize &= ~(1 << m_decoder);
 		m_state |= 8;
