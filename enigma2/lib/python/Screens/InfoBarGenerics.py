@@ -3129,7 +3129,7 @@ class InfoBarPowersaver:
 	def goStandby(self):
 		if not Screens.Standby.inStandby:
 			print "[InfoBarPowersaver] goto standby"
-			self.session.open(Screens.Standby.Standby)
+			self.session.open(Screens.Standby.TryQuitMainloop, 1)
 
 class InfoBarHDMI:
 	def __init__(self):
