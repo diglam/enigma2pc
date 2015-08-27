@@ -141,11 +141,21 @@ public:
 		{
 		}
 	};
-
 	struct errorInfo
 	{
 		std::string error_message;
 		std::string missing_codec;
+	};
+	struct bufferInfo
+	{
+		gint bufferPercent;
+		gint avgInRate;
+		gint avgOutRate;
+		gint64 bufferingLeft;
+		bufferInfo()
+			:bufferPercent(0), avgInRate(0), avgOutRate(0), bufferingLeft(-1)
+		{
+		}
 	};
 
 protected:
@@ -166,6 +176,7 @@ private:
 	friend class eServiceFactoryMP3;
 	eServiceReference m_ref;
 	int m_buffer_size;
+	bufferInfo m_bufferInfo;
 	gint64 m_buffer_duration;
 	bool m_use_prefillbuffer;
 	errorInfo m_errorInfo;

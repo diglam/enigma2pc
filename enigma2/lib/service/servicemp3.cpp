@@ -799,6 +799,7 @@ int eServiceMP3::getInfo(int w)
  	case sTagAttachment:
 		return resIsPyObject;
 		break;
+	case sBuffer: return m_bufferInfo.bufferPercent;
 	default:
 		return resNA;
 	}
