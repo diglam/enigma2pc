@@ -12,6 +12,8 @@
 
 class eStaticServiceMP3Info;
 
+//class eSubtitleWidget; openPLiPC
+
 class eServiceFactoryMP3: public iServiceHandler
 {
 	DECLARE_REF(eServiceFactoryMP3);
@@ -40,6 +42,7 @@ public:
 	int getLength(const eServiceReference &ref);
 	int getInfo(const eServiceReference &ref, int w);
 	int isPlayable(const eServiceReference &ref, const eServiceReference &ignore, bool simulate) { return 1; }
+//	PyObject* getInfoObject(const eServiceReference &ref, int w);
 	long long getFileSize(const eServiceReference &ref);
 	RESULT getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &ptr, time_t start_time);
 };
@@ -129,6 +132,31 @@ public:
 	int getPCMDelay();
 	void setAC3Delay(int);
 	void setPCMDelay(int);
+/*	openPLiPC
+
+	struct audioStream
+	{
+		GstPad* pad;
+		audiotype_t type;
+		std::string language_code; // iso-639, if available.
+		std::string codec; // clear text codec description
+		audioStream()
+			:pad(0), type(atUnknown)
+		{
+		}
+	};
+	struct subtitleStream
+	{
+		GstPad* pad;
+		subtype_t type;
+		std::string language_code; // iso-639, if available.
+		subtitleStream()
+			:pad(0)
+		{
+		}
+	};
+
+*/
 
 	struct sourceStream
 	{
@@ -141,11 +169,6 @@ public:
 		{
 		}
 	};
-	struct errorInfo
-	{
-		std::string error_message;
-		std::string missing_codec;
-	};
 	struct bufferInfo
 	{
 		gint bufferPercent;
@@ -156,6 +179,11 @@ public:
 			:bufferPercent(0), avgInRate(0), avgOutRate(0), bufferingLeft(-1)
 		{
 		}
+	};
+	struct errorInfo
+	{
+		std::string error_message;
+		std::string missing_codec;
 	};
 
 protected:
@@ -187,8 +215,54 @@ private:
 		stIdle, stRunning, stStopped,
 	};
 	int m_state;
+
+/*	openPLiPC
+
+	GstElement *m_gst_playbin, *audioSink, *videoSink;
+	GstTagList *m_stream_tags;
+
+	class GstMessageContainer: public iObject
+	{
+		DECLARE_REF(GstMessageContainer);
+		GstMessage *messagePointer;
+		GstPad *messagePad;
+		GstBuffer *messageBuffer;
+		int messageType;
+
+	public:
+		GstMessageContainer(int type, GstMessage *msg, GstPad *pad, GstBuffer *buffer)
+		{
+			messagePointer = msg;
+			messagePad = pad;
+			messageBuffer = buffer;
+			messageType = type;
+		}
+		~GstMessageContainer()
+		{
+			if (messagePointer) gst_message_unref(messagePointer);
+			if (messagePad) gst_object_unref(messagePad);
+			if (messageBuffer) gst_buffer_unref(messageBuffer);
+		}
+		int getType() { return messageType; }
+		operator GstMessage *() { return messagePointer; }
+		operator GstPad *() { return messagePad; }
+		operator GstBuffer *() { return messageBuffer; }
+	};
+	eFixedMessagePump<ePtr<GstMessageContainer> > m_pump;
+
+	audiotype_t gstCheckAudioPad(GstStructure* structure);
+	void gstBusCall(GstMessage *msg);
+	void handleMessage(GstMessage *msg);
+	static GstBusSyncReply gstBusSyncHandler(GstBus *bus, GstMessage *message, gpointer user_data);
+	static void gstTextpadHasCAPS(GstPad *pad, GParamSpec * unused, gpointer user_data);
+	void gstTextpadHasCAPS_synced(GstPad *pad);
+	static void gstCBsubtitleAvail(GstElement *element, GstBuffer *buffer, gpointer user_data);
+	GstPad* gstCreateSubtitleSink(eServiceMP3* _this, subtype_t type);
+	void gstPoll(ePtr<GstMessageContainer> const &);
+	static void gstHTTPSourceSetAgent(GObject *source, GParamSpec *unused, gpointer user_data);
+	static gint match_sinktype(GstElement *element, gpointer type);
 	
-	
+*/
 	struct SubtitlePage
 	{
 		enum { Unknown, Pango, Vob } type;
@@ -204,8 +278,10 @@ private:
 	int m_decoder_time_valid_state;
 
 	void pushSubtitles();
+//	void pullSubtitle(GstBuffer *buffer); openPLiPC
 	void sourceTimeout();
 	sourceStream m_sourceinfo;
+//	gulong m_subs_to_pull_handler_id; openPLiPC
 
 	RESULT seekToImpl(pts_t to);
 
