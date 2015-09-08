@@ -268,7 +268,7 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 {
 	m_subtitle_sync_timer = eTimer::create(eApp);
 	m_streamingsrc_timeout = 0;
-	//m_stream_tags = 0; openpliPC
+//	m_stream_tags = 0; openPLiPC
 	m_currentAudioStream = -1;
 	m_currentSubtitleStream = -1;
 	m_cachedSubtitleStream = 0; /* report the first subtitle stream to be 'cached'. TODO: use an actual cache. */
@@ -281,9 +281,9 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	m_decoder_time_valid_state = 0;
 	m_errorInfo.missing_codec = "";
 //	audioSink = videoSink = NULL; openPLiPC
-	
+
 	CONNECT(m_subtitle_sync_timer->timeout, eServiceMP3::pushSubtitles);
-	//CONNECT(m_pump.recv_msg, eServiceMP3::gstPoll); openpliPC
+//	CONNECT(m_pump.recv_msg, eServiceMP3::gstPoll); openpliPC
 	CONNECT(m_nownext_timer->timeout, eServiceMP3::updateEpgCacheNowNext);
 	m_aspect = m_width = m_height = m_framerate = m_progressive = -1;
 
@@ -429,8 +429,7 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 		strncpy(srt_filename,filename,strlen(filename)-3);
 		srt_filename[strlen(filename)-3]='\0';
 		strcat(srt_filename, "srt");
-		struct stat buffer;
-		if (stat(srt_filename, &buffer) == 0)
+		if (::access(srt_filename, R_OK) >= 0)
 		{
 			eDebug("eServiceMP3::subtitle uri: %s", g_filename_to_uri(srt_filename, NULL, NULL));
 			g_object_set (G_OBJECT (m_gst_playbin), "suburi", g_filename_to_uri(srt_filename, NULL, NULL), NULL);
@@ -446,7 +445,6 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 	g_free(uri);
 
 	setBufferSize(m_buffer_size);
-
 */
   
   cXineLib *xineLib = cXineLib::getInstance();
@@ -463,8 +461,7 @@ eServiceMP3::eServiceMP3(eServiceReference ref):
 eServiceMP3::~eServiceMP3()
 {
 /*	openPLiPC
-
-		// disconnect subtitle callback
+	// disconnect subtitle callback
 	GstElement *subsink = gst_bin_get_by_name(GST_BIN(m_gst_playbin), "subtitle_sink");
 
 	if (subsink)
@@ -508,7 +505,6 @@ eServiceMP3::~eServiceMP3()
 		gst_object_unref (GST_OBJECT (m_gst_playbin));
 		eDebug("eServiceMP3::destruct!");
 	}
-
 */
 }
 
@@ -559,7 +555,7 @@ void eServiceMP3::updateEpgCacheNowNext()
 
 DEFINE_REF(eServiceMP3);
 
-//DEFINE_REF(eServiceMP3::GstMessageContainer); openpliPC
+//DEFINE_REF(eServiceMP3::GstMessageContainer); openPLiPC
 
 RESULT eServiceMP3::connectEvent(const Slot2<void,iPlayableService*,int> &event, ePtr<eConnection> &connection)
 {
@@ -569,12 +565,10 @@ RESULT eServiceMP3::connectEvent(const Slot2<void,iPlayableService*,int> &event,
 
 RESULT eServiceMP3::start()
 {
-//	ASSERT(m_state == stIdle); openpliPC
+//	ASSERT(m_state == stIdle); openPLiPC
 
 	m_state = stRunning;
-
 /*	openPLiPC
-
 	if (m_gst_playbin)
 	{
 		eDebug("eServiceMP3::starting pipeline");
@@ -603,7 +597,7 @@ RESULT eServiceMP3::stop()
 		return -1;
 
 	eDebug("eServiceMP3::stop %s", m_ref.path.c_str());
-	//gst_element_set_state(m_gst_playbin, GST_STATE_NULL); openpliPC
+//	gst_element_set_state(m_gst_playbin, GST_STATE_NULL); openPLiPC
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->stopVideo();
 	m_state = stStopped;
@@ -640,11 +634,11 @@ RESULT eServiceMP3::setFastForward(int ratio)
 		// iPausableService
 RESULT eServiceMP3::pause()
 {
-	//if (!m_gst_playbin || m_state != stRunning) openpliPC
+//	if (!m_gst_playbin || m_state != stRunning) openPLiPC
 	if (m_state != stRunning)
 		return -1;
 
-	//trickSeek(0.0); openpliPC
+//	trickSeek(0.0); openPLiPC
 
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->VideoPause();
@@ -654,11 +648,11 @@ RESULT eServiceMP3::pause()
 
 RESULT eServiceMP3::unpause()
 {
-	//if (!m_gst_playbin || m_state != stRunning) openpliPC
+//	if (!m_gst_playbin || m_state != stRunning) openPLiPC
 	if (m_state != stRunning)
 		return -1;
 
-	//trickSeek(1.0); openpliPC
+//	trickSeek(1.0); openPLiPC
 
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->VideoResume();
@@ -675,8 +669,26 @@ RESULT eServiceMP3::seek(ePtr<iSeekableService> &ptr)
 
 RESULT eServiceMP3::getLength(pts_t &pts)
 {
+/*	openPLiPC
+	if (!m_gst_playbin)
+		return -1;
+
+*/
+
 	if (m_state != stRunning)
 		return -1;
+
+/*	openPLiPC
+
+	GstFormat fmt = GST_FORMAT_TIME;
+	gint64 len;
+	
+	if (!gst_element_query_duration(m_gst_playbin, &fmt, &len))
+		return -1;
+		// len is in nanoseconds. we have 90 000 pts per second.
+	
+	pts = len / 11111LL;
+*/
 
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->VideoPosisyon();
@@ -686,11 +698,37 @@ RESULT eServiceMP3::getLength(pts_t &pts)
 
 RESULT eServiceMP3::seekToImpl(pts_t to)
 {
+/*	openPLiPC
+		// convert pts to nanoseconds
+	gint64 time_nanoseconds = to * 11111LL;
+	if (!gst_element_seek (m_gst_playbin, m_currentTrickRatio, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH,
+		GST_SEEK_TYPE_SET, time_nanoseconds,
+		GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE))
+	{
+		eDebug("eServiceMP3::seekTo failed");
+		return -1;
+	}
+
+*/
+
 	return 0;
 }
 
 RESULT eServiceMP3::seekTo(pts_t to)
 {
+/*	openPLiPC
+	RESULT ret = -1;
+
+	if (m_gst_playbin)
+	{
+		m_subtitle_pages.clear();
+		m_prev_decoder_time = -1;
+		m_decoder_time_valid_state = 0;
+		ret = seekToImpl(to);
+	}
+
+*/
+
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->SeekTo(to/90);
 
@@ -703,7 +741,6 @@ RESULT eServiceMP3::trickSeek(gdouble ratio)
 {
 
 /*	openPLiPC
-
 	if (!m_gst_playbin)
 		return -1;
 	if (ratio > -0.01 && ratio < 0.01)
@@ -713,8 +750,8 @@ RESULT eServiceMP3::trickSeek(gdouble ratio)
 	}
 
 	m_currentTrickRatio = ratio;
-	
-		bool validposition = false;
+
+	bool validposition = false;
 	gint64 pos = 0;
 	pts_t pts;
 	if (getPlayPosition(pts) >= 0)
@@ -753,8 +790,7 @@ RESULT eServiceMP3::trickSeek(gdouble ratio)
 RESULT eServiceMP3::seekRelative(int direction, pts_t to)
 {
 /*	openPLiPC
-
-		if (!m_gst_playbin)
+	if (!m_gst_playbin)
 		return -1;
 
 	pts_t ppos;
@@ -763,7 +799,6 @@ RESULT eServiceMP3::seekRelative(int direction, pts_t to)
 	if (ppos < 0)
 		ppos = 0;
 	return seekTo(ppos);
-
 */
 
 	eDebug("eDVBServicePlay::seekRelative: jump %d, %lld", direction, to);
@@ -783,9 +818,36 @@ gint eServiceMP3::match_sinktype(GstElement *element, gpointer type)
 
 RESULT eServiceMP3::getPlayPosition(pts_t &pts)
 {
+/*	openPLiPC
+	gint64 pos;
+	pts = 0;
+
+	if (!m_gst_playbin)
+		return -1;
+*/
 	if (m_state != stRunning)
 		return -1;
 
+/*	openPLiPC
+
+	if (audioSink || videoSink)
+	{
+		g_signal_emit_by_name(audioSink ? audioSink : videoSink, "get-decoder-time", &pos);
+		if (!GST_CLOCK_TIME_IS_VALID(pos)) return -1;
+	}
+	else
+	{
+		GstFormat fmt = GST_FORMAT_TIME;
+		if (!gst_element_query_position(m_gst_playbin, &fmt, &pos)) 
+		{
+			eDebug("gst_element_query_position failed in getPlayPosition");
+			return -1;
+		}
+	}
+
+	// pos is in nanoseconds. we have 90 000 pts per second.
+	pts = pos / 11111LL;
+*/
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->VideoPosisyon();
 	pts=xineLib->Vpos*90;
@@ -800,10 +862,15 @@ RESULT eServiceMP3::setTrickmode(int trick)
 
 RESULT eServiceMP3::isCurrentlySeekable()
 {
+/*	openPLiPC
+
+	if (!m_gst_playbin)
+		return 0;
+*/
 	if (m_state != stRunning)
 		return 0;
 
-	int ret = 3; // seeking and fast/slow winding possible
+	int ret = 3; /* just assume that seeking and fast/slow winding are possible */
 	return ret;
 }
 
@@ -838,11 +905,12 @@ RESULT eServiceMP3::getEvent(ePtr<eServiceEvent> &evt, int nownext)
 
 int eServiceMP3::getInfo(int w)
 {
+//	const gchar *tag = 0; openPLiPC
 	cXineLib *xineLib = cXineLib::getInstance();
  
- 	switch (w)
- 	{
- 	case sServiceref: return m_ref;
+	switch (w)
+	{
+	case sServiceref: return m_ref;
 	case sVideoHeight:
 		return xineLib->getVideoHeight();
 		break;
@@ -852,9 +920,9 @@ int eServiceMP3::getInfo(int w)
 	case sFrameRate:
 		return xineLib->getVideoFrameRate();
 		break;
- 	case sTagTitle:
- 	case sTagArtist:
- 	case sTagAlbum:
+	case sTagTitle:
+	case sTagArtist:
+	case sTagAlbum:
 	case sTagTitleSortname:
 	case sTagArtistSortname:
 	case sTagAlbumSortname:
@@ -890,25 +958,245 @@ int eServiceMP3::getInfo(int w)
 	case sTagReferenceLevel:
 	case sTagBeatsPerMinute:
 	case sTagImage:
- 	case sTagPreviewImage:
- 	case sTagAttachment:
+	case sTagPreviewImage:
+	case sTagAttachment:
 		return resIsPyObject;
 		break;
+/*	openPLiPC
+	case sTagTrackNumber:
+		tag = GST_TAG_TRACK_NUMBER;
+		break;
+	case sTagTrackCount:
+		tag = GST_TAG_TRACK_COUNT;
+		break;
+	case sTagAlbumVolumeNumber:
+		tag = GST_TAG_ALBUM_VOLUME_NUMBER;
+		break;
+	case sTagAlbumVolumeCount:
+		tag = GST_TAG_ALBUM_VOLUME_COUNT;
+		break;
+	case sTagBitrate:
+		tag = GST_TAG_BITRATE;
+		break;
+	case sTagNominalBitrate:
+		tag = GST_TAG_NOMINAL_BITRATE;
+		break;
+	case sTagMinimumBitrate:
+		tag = GST_TAG_MINIMUM_BITRATE;
+		break;
+	case sTagMaximumBitrate:
+		tag = GST_TAG_MAXIMUM_BITRATE;
+		break;
+	case sTagSerial:
+		tag = GST_TAG_SERIAL;
+		break;
+	case sTagEncoderVersion:
+		tag = GST_TAG_ENCODER_VERSION;
+		break;
+	case sTagCRC:
+		tag = "has-crc";
+		break;
+*/
 	case sBuffer: return m_bufferInfo.bufferPercent;
 	default:
 		return resNA;
 	}
+
+/*	openPLiPC
+
+	if (!m_stream_tags || !tag)
+		return 0;
+	
+	guint value;
+	if (gst_tag_list_get_uint(m_stream_tags, tag, &value))
+		return (int) value;
+
+*/
 
 	return 0;
 }
 
 std::string eServiceMP3::getInfoString(int w)
 {
+/*	openPLiPC
+	if ( !m_stream_tags && w < sUser && w > 26 )
+		return "";
+	const gchar *tag = 0;
+	switch (w)
+	{
+	case sTagTitle:
+		tag = GST_TAG_TITLE;
+		break;
+	case sTagArtist:
+		tag = GST_TAG_ARTIST;
+		break;
+	case sTagAlbum:
+		tag = GST_TAG_ALBUM;
+		break;
+	case sTagTitleSortname:
+		tag = GST_TAG_TITLE_SORTNAME;
+		break;
+	case sTagArtistSortname:
+		tag = GST_TAG_ARTIST_SORTNAME;
+		break;
+	case sTagAlbumSortname:
+		tag = GST_TAG_ALBUM_SORTNAME;
+		break;
+	case sTagDate:
+		GDate *date;
+		if (gst_tag_list_get_date(m_stream_tags, GST_TAG_DATE, &date))
+		{
+			gchar res[5];
+ 			g_date_strftime (res, sizeof(res), "%Y-%M-%D", date); 
+			return (std::string)res;
+		}
+		break;
+	case sTagComposer:
+		tag = GST_TAG_COMPOSER;
+		break;
+	case sTagGenre:
+		tag = GST_TAG_GENRE;
+		break;
+	case sTagComment:
+		tag = GST_TAG_COMMENT;
+		break;
+	case sTagExtendedComment:
+		tag = GST_TAG_EXTENDED_COMMENT;
+		break;
+	case sTagLocation:
+		tag = GST_TAG_LOCATION;
+		break;
+	case sTagHomepage:
+		tag = GST_TAG_HOMEPAGE;
+		break;
+	case sTagDescription:
+		tag = GST_TAG_DESCRIPTION;
+		break;
+	case sTagVersion:
+		tag = GST_TAG_VERSION;
+		break;
+	case sTagISRC:
+		tag = GST_TAG_ISRC;
+		break;
+	case sTagOrganization:
+		tag = GST_TAG_ORGANIZATION;
+		break;
+	case sTagCopyright:
+		tag = GST_TAG_COPYRIGHT;
+		break;
+	case sTagCopyrightURI:
+		tag = GST_TAG_COPYRIGHT_URI;
+		break;
+	case sTagContact:
+		tag = GST_TAG_CONTACT;
+		break;
+	case sTagLicense:
+		tag = GST_TAG_LICENSE;
+		break;
+	case sTagLicenseURI:
+		tag = GST_TAG_LICENSE_URI;
+		break;
+	case sTagCodec:
+		tag = GST_TAG_CODEC;
+		break;
+	case sTagAudioCodec:
+		tag = GST_TAG_AUDIO_CODEC;
+		break;
+	case sTagVideoCodec:
+		tag = GST_TAG_VIDEO_CODEC;
+		break;
+	case sTagEncoder:
+		tag = GST_TAG_ENCODER;
+		break;
+	case sTagLanguageCode:
+		tag = GST_TAG_LANGUAGE_CODE;
+		break;
+	case sTagKeywords:
+		tag = GST_TAG_KEYWORDS;
+		break;
+	case sTagChannelMode:
+		tag = "channel-mode";
+		break;
+	case sUser+12:
+		return m_errorInfo.error_message;
+	default:
+		return "";
+	}
+	if ( !tag )
+		return "";
+	gchar *value;
+	if (m_stream_tags && gst_tag_list_get_string(m_stream_tags, tag, &value))
+	{
+		std::string res = value;
+		g_free(value);
+		return res;
+	}
+*/
 	return "";
 }
 
 PyObject *eServiceMP3::getInfoObject(int w)
 {
+/*	openPLiPC
+	const gchar *tag = 0;
+	bool isBuffer = false;
+	switch (w)
+	{
+		case sTagTrackGain:
+			tag = GST_TAG_TRACK_GAIN;
+			break;
+		case sTagTrackPeak:
+			tag = GST_TAG_TRACK_PEAK;
+			break;
+		case sTagAlbumGain:
+			tag = GST_TAG_ALBUM_GAIN;
+			break;
+		case sTagAlbumPeak:
+			tag = GST_TAG_ALBUM_PEAK;
+			break;
+		case sTagReferenceLevel:
+			tag = GST_TAG_REFERENCE_LEVEL;
+			break;
+		case sTagBeatsPerMinute:
+			tag = GST_TAG_BEATS_PER_MINUTE;
+			break;
+		case sTagImage:
+			tag = GST_TAG_IMAGE;
+			isBuffer = true;
+			break;
+		case sTagPreviewImage:
+			tag = GST_TAG_PREVIEW_IMAGE;
+			isBuffer = true;
+			break;
+		case sTagAttachment:
+			tag = GST_TAG_ATTACHMENT;
+			isBuffer = true;
+			break;
+		default:
+			break;
+	}
+
+	if (m_stream_tags && tag)
+	{
+		if (isBuffer)
+		{
+			const GValue *gv_buffer = gst_tag_list_get_value_index(m_stream_tags, tag, 0);
+			if ( gv_buffer )
+			{
+				GstBuffer *buffer;
+				buffer = gst_value_get_buffer (gv_buffer);
+				return PyBuffer_FromMemory(GST_BUFFER_DATA(buffer), GST_BUFFER_SIZE(buffer));
+			}
+		}
+		else
+		{
+			gdouble value = 0.0;
+			gst_tag_list_get_double(m_stream_tags, tag, &value);
+			return PyFloat_FromDouble(value);
+		}
+	}
+
+*/
 	Py_RETURN_NONE;
 }
 
@@ -938,6 +1226,7 @@ RESULT eServiceMP3::audioDelay(ePtr<iAudioDelay> &ptr)
 
 int eServiceMP3::getNumberOfTracks()
 {
+//	return m_audioStreams.size(); openPLiPC
 	cXineLib *xineLib = cXineLib::getInstance();
 	int ret=xineLib->getNumberOfTracksAudio();
 	//printf("Number of tracks - %d\n", ret);
@@ -950,6 +1239,12 @@ int eServiceMP3::getNumberOfTracks()
 
 int eServiceMP3::getCurrentTrack()
 {
+/*	openPLiPC
+	if (m_currentAudioStream == -1)
+		g_object_get (G_OBJECT (m_gst_playbin), "current-audio", &m_currentAudioStream, NULL);
+	return m_currentAudioStream;
+*/
+
 	cXineLib *xineLib = cXineLib::getInstance();
 	int ret = xineLib->getCurrentTrackAudio();
 	//printf("Current  track audio - %d\n", ret);
@@ -983,10 +1278,21 @@ RESULT eServiceMP3::selectTrack(unsigned int i)
 
 int eServiceMP3::selectAudioStream(int i)
 {
+/*	openPLiPC
+	int current_audio;
+	g_object_set (G_OBJECT (m_gst_playbin), "current-audio", i, NULL);
+	g_object_get (G_OBJECT (m_gst_playbin), "current-audio", &current_audio, NULL);
+	if ( current_audio == i )
+	{
+		eDebug ("eServiceMP3::switched to audio stream %i", current_audio);
+		m_currentAudioStream = i;
+		return 0;
+	}
+	return -1;
+*/
+
 	cXineLib *xineLib = cXineLib::getInstance();
 	xineLib->selectAudioStream(i);
-
-	//return 0;
 	return i;
 }
 
@@ -1003,12 +1309,34 @@ RESULT eServiceMP3::selectChannel(int i)
 
 RESULT eServiceMP3::getTrackInfo(struct iAudioTrackInfo &info, unsigned int i)
 {
+/*	openPLiPC
+ 	if (i >= m_audioStreams.size())
+		return -2;
+		info.m_description = m_audioStreams[i].codec;
+*/
+/*	if (m_audioStreams[i].type == atMPEG)
+		info.m_description = "MPEG";
+	else if (m_audioStreams[i].type == atMP3)
+		info.m_description = "MP3";
+	else if (m_audioStreams[i].type == atAC3)
+		info.m_description = "AC3";
+	else if (m_audioStreams[i].type == atAAC)
+		info.m_description = "AAC";
+	else if (m_audioStreams[i].type == atDTS)
+		info.m_description = "DTS";
+	else if (m_audioStreams[i].type == atPCM)
+		info.m_description = "PCM";
+	else if (m_audioStreams[i].type == atOGG)
+		info.m_description = "OGG";
+	else if (m_audioStreams[i].type == atFLAC)
+		info.m_description = "FLAC";
+	else
+		info.m_description = "???";*/
 	cXineLib *xineLib = cXineLib::getInstance();
 	info.m_description = "???";
-
 	if (info.m_language.empty())
 		info.m_language = xineLib->getAudioLang(i);
-
+//		info.m_language = m_audioStreams[i].language_code; openPLiPC
 	return 0;
 }
 
@@ -1556,7 +1884,6 @@ void eServiceMP3::gstPoll(ePtr<GstMessageContainer> const &msg)
 		}
 	}
 }
-
 */
 
 eAutoInitPtr<eServiceFactoryMP3> init_eServiceFactoryMP3(eAutoInitNumbers::service+1, "eServiceFactoryMP3");
@@ -1674,7 +2001,6 @@ void eServiceMP3::pushSubtitles()
 {
 
 /*	openPLiPC
-
 	while ( !m_subtitle_pages.empty() )
 	{
 		SubtitlePage &frontpage = m_subtitle_pages.front();
@@ -1726,7 +2052,6 @@ void eServiceMP3::pushSubtitles()
 			m_subtitle_pages.pop_front();
 		}
 	}
-
 */
 
 }
@@ -1735,7 +2060,6 @@ RESULT eServiceMP3::enableSubtitles(iSubtitleUser *user, struct SubtitleTrack &t
 {
 
 /*	openPLiPC
-
 	ePyObject entry;
 	int tuplesize = PyTuple_Size(tuple);
 	int pid;
@@ -1784,7 +2108,6 @@ error_out:
 	eDebug("eServiceMP3::enableSubtitles needs a tuple as 2nd argument!\n"
 		"for gst subtitles (2, subtitle_stream_count, subtitle_type)");
 	return -1;
-
 */
 
 }
@@ -1811,6 +2134,19 @@ RESULT eServiceMP3::disableSubtitles()
 
 RESULT eServiceMP3::getCachedSubtitle(struct SubtitleTrack &track)
 {
+/*
+	if (m_cachedSubtitleStream >= 0 && m_cachedSubtitleStream < (int)m_subtitleStreams.size())
+	{
+		ePyObject tuple = PyTuple_New(4);
+		PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(2));
+		PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(m_cachedSubtitleStream));
+		PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(int(m_subtitleStreams[m_cachedSubtitleStream].type)));
+		PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(0));
+
+		return tuple;
+	}
+	Py_RETURN_NONE;
+*/
 // 	eDebug("eServiceMP3::getCachedSubtitle");
 	return -1;
 }
@@ -1818,7 +2154,36 @@ RESULT eServiceMP3::getCachedSubtitle(struct SubtitleTrack &track)
 RESULT eServiceMP3::getSubtitleList(std::vector<struct SubtitleTrack> &subtitlelist)
 {
 // 	eDebug("eServiceMP3::getSubtitleList");
+//	ePyObject l = PyList_New(0); openPLiPC
 	int stream_idx = 0;
+
+/*	openPLiPC
+
+	for (std::vector<subtitleStream>::iterator IterSubtitleStream(m_subtitleStreams.begin()); IterSubtitleStream != m_subtitleStreams.end(); ++IterSubtitleStream)
+	{
+		subtype_t type = IterSubtitleStream->type;
+		switch(type)
+		{
+		case stUnknown:
+		case stVOB:
+		case stPGS:
+			break;
+		default:
+		{
+			ePyObject tuple = PyTuple_New(5);
+//			eDebug("eServiceMP3::getSubtitleList idx=%i type=%i, code=%s", stream_idx, int(type), (IterSubtitleStream->language_code).c_str());
+			PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(2));
+			PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(stream_idx));
+			PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(int(type)));
+			PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(0));
+			PyTuple_SET_ITEM(tuple, 4, PyString_FromString((IterSubtitleStream->language_code).c_str()));
+			PyList_Append(l, tuple);
+			Py_DECREF(tuple);
+		}
+		}
+		stream_idx++;
+	}
+*/
 	eDebug("eServiceMP3::getSubtitleList finished");
 	return 0;
 }
@@ -1843,6 +2208,7 @@ PyObject *eServiceMP3::getBufferCharge()
 int eServiceMP3::setBufferSize(int size)
 {
 	m_buffer_size = size;
+//	g_object_set (G_OBJECT (m_gst_playbin), "buffer-size", m_buffer_size, NULL); openPLiPC
 	return 0;
 }
 
@@ -1858,9 +2224,7 @@ int eServiceMP3::getPCMDelay()
 
 void eServiceMP3::setAC3Delay(int delay)
 {
-
 /*	openPLiPC
-
 	ac3_delay = delay;
 	if (!m_gst_playbin || m_state != stRunning)
 		return;
@@ -1890,16 +2254,13 @@ void eServiceMP3::setAC3Delay(int delay)
 			eTSMPEGDecoder::setHwAC3Delay(config_delay_int);
 		}
 	}
-
 */
-
 }
 
 void eServiceMP3::setPCMDelay(int delay)
 {
 
 /*	openPLiPC
-
 	pcm_delay = delay;
 	if (!m_gst_playbin || m_state != stRunning)
 		return;
@@ -1931,6 +2292,5 @@ void eServiceMP3::setPCMDelay(int delay)
 	}
 
 */
-
 }
 

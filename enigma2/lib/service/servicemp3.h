@@ -47,6 +47,8 @@ public:
 	RESULT getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &ptr, time_t start_time);
 };
 
+//typedef struct _GstElement GstElement; openPLiPC
+
 typedef enum { atUnknown, atMPEG, atMP3, atAC3, atDTS, atAAC, atPCM, atOGG, atFLAC, atWMA } audiotype_t;
 typedef enum { stUnknown, stPlainText, stSSA, stASS, stSRT, stVOB, stPGS } subtype_t;
 typedef enum { ctNone, ctMPEGTS, ctMPEGPS, ctMKV, ctAVI, ctMP4, ctVCD, ctCDA, ctASF, ctOGG } containertype_t;
@@ -132,7 +134,8 @@ public:
 	int getPCMDelay();
 	void setAC3Delay(int);
 	void setPCMDelay(int);
-/*	openPLiPC
+
+	/*	openPLiPC
 
 	struct audioStream
 	{
@@ -155,9 +158,7 @@ public:
 		{
 		}
 	};
-
 */
-
 	struct sourceStream
 	{
 		audiotype_t audiotype;
@@ -198,15 +199,17 @@ private:
 	int m_currentSubtitleStream;
 	int m_cachedSubtitleStream;
 	int selectAudioStream(int i);
+//	std::vector<audioStream> m_audioStreams;
+//	std::vector<subtitleStream> m_subtitleStreams;
 	iSubtitleUser *m_subtitle_widget;
 //	eSubtitleWidget *m_subtitle_widget;
 	gdouble m_currentTrickRatio;
 	friend class eServiceFactoryMP3;
 	eServiceReference m_ref;
 	int m_buffer_size;
-	bufferInfo m_bufferInfo;
 	gint64 m_buffer_duration;
 	bool m_use_prefillbuffer;
+	bufferInfo m_bufferInfo;
 	errorInfo m_errorInfo;
 	eServiceMP3(eServiceReference ref);
 	Signal2<void,iPlayableService*,int> m_event;
@@ -215,9 +218,7 @@ private:
 		stIdle, stRunning, stStopped,
 	};
 	int m_state;
-
 /*	openPLiPC
-
 	GstElement *m_gst_playbin, *audioSink, *videoSink;
 	GstTagList *m_stream_tags;
 
@@ -261,7 +262,7 @@ private:
 	void gstPoll(ePtr<GstMessageContainer> const &);
 	static void gstHTTPSourceSetAgent(GObject *source, GParamSpec *unused, gpointer user_data);
 	static gint match_sinktype(GstElement *element, gpointer type);
-	
+
 */
 	struct SubtitlePage
 	{
