@@ -293,6 +293,57 @@ int eStreamBufferInfo::getBufferSize() const
 	return bufferSize;
 }
 
+DEFINE_REF(eServiceMP3InfoContainer);
+
+eServiceMP3InfoContainer::eServiceMP3InfoContainer()
+: doubleValue(0.0), bufferValue(NULL), bufferData(NULL), bufferSize(0)
+{
+}
+
+eServiceMP3InfoContainer::~eServiceMP3InfoContainer()
+{
+	if (bufferValue)
+	{
+#if GST_VERSION_MAJOR >= 1
+		gst_buffer_unmap(bufferValue, &map);
+#endif
+		gst_buffer_unref(bufferValue);
+		bufferValue = NULL;
+		bufferData = NULL;
+		bufferSize = 0;
+	}
+}
+
+double eServiceMP3InfoContainer::getDouble(unsigned int index) const
+{
+	return doubleValue;
+}
+
+unsigned char *eServiceMP3InfoContainer::getBuffer(unsigned int &size) const
+{
+	size = bufferSize;
+	return bufferData;
+}
+
+void eServiceMP3InfoContainer::setDouble(double value)
+{
+	doubleValue = value;
+}
+
+void eServiceMP3InfoContainer::setBuffer(GstBuffer *buffer)
+{
+	bufferValue = buffer;
+	gst_buffer_ref(bufferValue);
+#if GST_VERSION_MAJOR < 1
+	bufferData = GST_BUFFER_DATA(bufferValue);
+	bufferSize = GST_BUFFER_SIZE(bufferValue);
+#else
+	gst_buffer_map(bufferValue, &map, GST_MAP_READ);
+	bufferData = map.data;
+	bufferSize = map.size;
+#endif
+}
+
 RESULT eStaticServiceMP3Info::getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &evt, time_t start_time)
 {
 	if (ref.path.find("://") != std::string::npos)
@@ -1230,8 +1281,10 @@ std::string eServiceMP3::getInfoString(int w)
 	return "";
 }
 
-PyObject *eServiceMP3::getInfoObject(int w)
+ePtr<iServiceInfoContainer> eServiceMP3::getInfoObject(int w)
 {
+	eServiceMP3InfoContainer *container = new eServiceMP3InfoContainer;
+	ePtr<iServiceInfoContainer> retval = container;
 /*	openPLiPC
 	const gchar *tag = 0;
 	bool isBuffer = false;
@@ -1278,37 +1331,21 @@ PyObject *eServiceMP3::getInfoObject(int w)
 			const GValue *gv_buffer = gst_tag_list_get_value_index(m_stream_tags, tag, 0);
 			if ( gv_buffer )
 			{
-				PyObject *retval = NULL;
-				guint8 *data;
-				gsize size;
 				GstBuffer *buffer;
 				buffer = gst_value_get_buffer (gv_buffer);
-#if GST_VERSION_MAJOR < 1
-				data = GST_BUFFER_DATA(buffer);
-				size = GST_BUFFER_SIZE(buffer);
-#else
-				GstMapInfo map;
-				gst_buffer_map(buffer, &map, GST_MAP_READ);
-				data = map.data;
-				size = map.size;
-#endif
-				retval = PyBuffer_FromMemory(data, size);
-#if GST_VERSION_MAJOR >= 1
-				gst_buffer_unmap(buffer, &map);
-#endif
-				return retval;
+				container->setBuffer(buffer);
 			}
 		}
 		else
 		{
 			gdouble value = 0.0;
 			gst_tag_list_get_double(m_stream_tags, tag, &value);
-			return PyFloat_FromDouble(value);
+			container->setDouble(value);
 		}
 	}
-
 */
-	Py_RETURN_NONE;
+	retval = 0;
+	return retval;
 }
 
 RESULT eServiceMP3::audioChannel(ePtr<iAudioChannelSelection> &ptr)
