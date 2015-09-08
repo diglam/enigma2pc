@@ -1708,8 +1708,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 		{
 			if(GST_MESSAGE_SRC(msg) != GST_OBJECT(m_gst_playbin))
 				break;
-
-			GstTagList *tags;
+			
 			gint i, n_video = 0, n_audio = 0, n_text = 0;
 
 			g_object_get (m_gst_playbin, "n-video", &n_video, NULL);
@@ -1728,6 +1727,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 			{
 				audioStream audio;
 				gchar *g_codec, *g_lang;
+				GstTagList *tags = NULL;
 				GstPad* pad = 0;
 				g_signal_emit_by_name (m_gst_playbin, "get-audio-pad", i, &pad);
 #if GST_VERSION_MAJOR < 1
@@ -1745,7 +1745,6 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 				audio.codec = g_type;
 				g_codec = NULL;
 				g_lang = NULL;
-				tags = NULL;
 				g_signal_emit_by_name (m_gst_playbin, "get-audio-tags", i, &tags);
 #if GST_VERSION_MAJOR < 1
 				if (tags && gst_is_tag_list(tags))
@@ -1773,10 +1772,10 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 			for (i = 0; i < n_text; i++)
 			{
 				gchar *g_codec = NULL, *g_lang = NULL;
+				GstTagList *tags = NULL;
 				g_signal_emit_by_name (m_gst_playbin, "get-text-tags", i, &tags);
 				subtitleStream subs;
 				subs.language_code = "und";
-				tags = NULL;
 #if GST_VERSION_MAJOR < 1
 				if (tags && gst_is_tag_list(tags))
 #else
