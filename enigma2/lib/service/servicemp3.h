@@ -46,6 +46,25 @@ public:
 	RESULT getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &ptr, time_t start_time);
 };
 
+class eStreamBufferInfo: public iStreamBufferInfo
+{
+	DECLARE_REF(eStreamBufferInfo);
+	int bufferPercentage;
+	int inputRate;
+	int outputRate;
+	int bufferSpace;
+	int bufferSize;
+
+public:
+	eStreamBufferInfo(int percentage, int inputrate, int outputrate, int space, int size);
+
+	int getBufferPercentage() const;
+	int getAverageInputRate() const;
+	int getAverageOutputRate() const;
+	int getBufferSpace() const;
+	int getBufferSize() const;
+};
+
 //typedef struct _GstElement GstElement; openPLiPC
 
 typedef enum { atUnknown, atMPEG, atMP3, atAC3, atDTS, atAAC, atPCM, atOGG, atFLAC, atWMA } audiotype_t;
@@ -125,7 +144,7 @@ public:
 
 		// iStreamedService
 	RESULT streamed(ePtr<iStreamedService> &ptr);
-	PyObject *getBufferCharge();
+	ePtr<iStreamBufferInfo> getBufferCharge();
 	int setBufferSize(int size);
 
 		// iAudioDelay
