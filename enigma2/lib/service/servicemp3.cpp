@@ -1196,7 +1196,6 @@ std::string eServiceMP3::getInfoString(int w)
 		default:
 			break;
 		}
-		return iServiceInformation::getInfoString(w);
 	}
 
 /*	openPLiPC
