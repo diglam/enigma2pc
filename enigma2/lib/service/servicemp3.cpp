@@ -967,10 +967,18 @@ RESULT eServiceMP3::seekRelative(int direction, pts_t to)
 
 /*	openPLiPC
 
+#if GST_VERSION_MAJOR < 1
 gint eServiceMP3::match_sinktype(GstElement *element, gpointer type)
 {
 	return strcmp(g_type_name(G_OBJECT_TYPE(element)), (const char*)type);
 }
+#else
+gint eServiceMP3::match_sinktype(const GValue *velement, const gchar *type)
+{
+	GstElement *element = GST_ELEMENT_CAST(g_value_get_object(velement));
+	return strcmp(g_type_name(G_OBJECT_TYPE(element)), type);
+}
+#endif
 
 */
 
@@ -1674,7 +1682,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 #else
 					if (gst_iterator_find_custom(children, (GCompareFunc)match_sinktype, &element, (gpointer)"GstDVBAudioSink"))
 					{
-						audioSink = g_value_dup_object(&element);
+						audioSink = GST_ELEMENT_CAST(g_value_get_object(&element));
 						g_value_unset(&element);
 					}
 #endif
@@ -1685,7 +1693,7 @@ void eServiceMP3::gstBusCall(GstMessage *msg)
 #else
 					if (gst_iterator_find_custom(children, (GCompareFunc)match_sinktype, &element, (gpointer)"GstDVBVideoSink"))
 					{
-						videoSink = g_value_dup_object(&element);
+						videoSink = GST_ELEMENT_CAST(g_value_get_object(&element));
 						g_value_unset(&element);
 					}
 #endif
