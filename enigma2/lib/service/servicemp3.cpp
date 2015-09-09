@@ -605,7 +605,8 @@ eServiceMP3::~eServiceMP3()
 		gst_object_unref(subsink);
 	}
 
-	delete m_subtitle_widget;
+	if (m_subtitle_widget) m_subtitle_widget->destroy();
+	m_subtitle_widget = 0;
 
 	if (m_gst_playbin)
 	{
@@ -2387,7 +2388,6 @@ void eServiceMP3::pushSubtitles()
 			pango_page.m_timeout = end_ms - decoder_ms;		// take late start into account
 
 			m_subtitle_widget->setPage(pango_page);
-			m_subtitle_widget->show();
 		}
 
 		//eDebug("*** no next sub scheduled, check NEXT subtitle");
@@ -2410,35 +2410,19 @@ exit:
 
 RESULT eServiceMP3::enableSubtitles(iSubtitleUser *user, struct SubtitleTrack &track)
 {
-
 /*	openPLiPC
-	ePyObject entry;
-	int tuplesize = PyTuple_Size(tuple);
-	int pid;
-
-	if (!PyTuple_Check(tuple))
-		goto error_out;
-	if (tuplesize < 1)
-		goto error_out;
-	entry = PyTuple_GET_ITEM(tuple, 1);
-	if (!PyInt_Check(entry))
-		goto error_out;
-	pid = PyInt_AsLong(entry);
-
-	if (m_currentSubtitleStream != pid)
-	{
+	if (m_currentSubtitleStream != track.pid)
+ 	{
 		g_object_set (G_OBJECT (m_gst_playbin), "current-text", -1, NULL);
 		m_subtitle_sync_timer->stop();
 		m_subtitle_pages.clear();
 		m_prev_decoder_time = -1;
 		m_decoder_time_valid_state = 0;
-		m_currentSubtitleStream = pid;
+		m_currentSubtitleStream = track.pid;
 		m_cachedSubtitleStream = m_currentSubtitleStream;
 		g_object_set (G_OBJECT (m_gst_playbin), "current-text", m_currentSubtitleStream, NULL);
 
-		m_subtitle_widget = 0;
-		m_subtitle_widget = new eSubtitleWidget(parent);
-		m_subtitle_widget->resize(parent->size()); // full size //
+		m_subtitle_widget = user;
 
 		eDebug ("eServiceMP3::switched to subtitle stream %i", m_currentSubtitleStream);
 
@@ -2454,22 +2438,11 @@ RESULT eServiceMP3::enableSubtitles(iSubtitleUser *user, struct SubtitleTrack &t
 */
 
 	return 0;
-	
-/*	openPLiPC
-
-error_out:
-	eDebug("eServiceMP3::enableSubtitles needs a tuple as 2nd argument!\n"
-		"for gst subtitles (2, subtitle_stream_count, subtitle_type)");
-	return -1;
-*/
-
 }
 
 RESULT eServiceMP3::disableSubtitles()
 {
-
 /*	openPLiPC
-
 	eDebug("eServiceMP3::disableSubtitles");
 	m_currentSubtitleStream = -1;
 	m_cachedSubtitleStream = m_currentSubtitleStream;
@@ -2478,37 +2451,35 @@ RESULT eServiceMP3::disableSubtitles()
 	m_subtitle_pages.clear();
 	m_prev_decoder_time = -1;
 	m_decoder_time_valid_state = 0;
-	delete m_subtitle_widget;
+	if (m_subtitle_widget) m_subtitle_widget->destroy();
 	m_subtitle_widget = 0;
-
 */
-
 	return 0;
 }
 
 RESULT eServiceMP3::getCachedSubtitle(struct SubtitleTrack &track)
 {
-/*
+
+	bool autoturnon = eConfigManager::getConfigBoolValue("config.subtitles.pango_autoturnon", true);
+	if (!autoturnon)
+		return -1;
+
+/*	openPLiPC
 	if (m_cachedSubtitleStream >= 0 && m_cachedSubtitleStream < (int)m_subtitleStreams.size())
 	{
-		ePyObject tuple = PyTuple_New(4);
-		PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(2));
-		PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(m_cachedSubtitleStream));
-		PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(int(m_subtitleStreams[m_cachedSubtitleStream].type)));
-		PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(0));
-
-		return tuple;
+		track.type = 2;
+		track.pid = m_cachedSubtitleStream;
+		track.page_number = int(m_subtitleStreams[m_cachedSubtitleStream].type);
+		track.magazine_number = 0;
+		return 0;
 	}
-	Py_RETURN_NONE;
 */
-// 	eDebug("eServiceMP3::getCachedSubtitle");
 	return -1;
 }
 
 RESULT eServiceMP3::getSubtitleList(std::vector<struct SubtitleTrack> &subtitlelist)
 {
 // 	eDebug("eServiceMP3::getSubtitleList");
-//	ePyObject l = PyList_New(0); openPLiPC
 	int stream_idx = 0;
 
 /*	openPLiPC
@@ -2524,15 +2495,13 @@ RESULT eServiceMP3::getSubtitleList(std::vector<struct SubtitleTrack> &subtitlel
 			break;
 		default:
 		{
-			ePyObject tuple = PyTuple_New(5);
-//			eDebug("eServiceMP3::getSubtitleList idx=%i type=%i, code=%s", stream_idx, int(type), (IterSubtitleStream->language_code).c_str());
-			PyTuple_SET_ITEM(tuple, 0, PyInt_FromLong(2));
-			PyTuple_SET_ITEM(tuple, 1, PyInt_FromLong(stream_idx));
-			PyTuple_SET_ITEM(tuple, 2, PyInt_FromLong(int(type)));
-			PyTuple_SET_ITEM(tuple, 3, PyInt_FromLong(0));
-			PyTuple_SET_ITEM(tuple, 4, PyString_FromString((IterSubtitleStream->language_code).c_str()));
-			PyList_Append(l, tuple);
-			Py_DECREF(tuple);
+			struct SubtitleTrack track;
+			track.type = 2;
+			track.pid = stream_idx;
+			track.page_number = int(type);
+			track.magazine_number = 0;
+			track.language_code = IterSubtitleStream->language_code;
+			subtitlelist.push_back(track);
 		}
 		}
 		stream_idx++;

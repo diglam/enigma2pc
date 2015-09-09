@@ -12,8 +12,6 @@
 
 class eStaticServiceMP3Info;
 
-//class eSubtitleWidget; openPLiPC
-
 class eServiceFactoryMP3: public iServiceHandler
 {
 	DECLARE_REF(eServiceFactoryMP3);
@@ -244,7 +242,6 @@ private:
 //	std::vector<audioStream> m_audioStreams;
 //	std::vector<subtitleStream> m_subtitleStreams;
 	iSubtitleUser *m_subtitle_widget;
-//	eSubtitleWidget *m_subtitle_widget;
 	gdouble m_currentTrickRatio;
 	friend class eServiceFactoryMP3;
 	eServiceReference m_ref;
