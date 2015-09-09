@@ -761,6 +761,8 @@ RESULT eServiceMP3::stop()
 	xineLib->stopVideo();
 	m_state = stStopped;
 	m_nownext_timer->stop();
+	if (m_streamingsrc_timeout)
+		m_streamingsrc_timeout->stop();
 
 	return 0;
 }
