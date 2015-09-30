@@ -261,7 +261,9 @@ private:
 		stIdle, stRunning, stStopped,
 	};
 	int m_state;
+
 /*	openPLiPC
+
 	GstElement *m_gst_playbin, *audioSink, *videoSink;
 	GstTagList *m_stream_tags;
 

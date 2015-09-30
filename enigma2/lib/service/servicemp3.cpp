@@ -273,6 +273,19 @@ long long eStaticServiceMP3Info::getFileSize(const eServiceReference &ref)
 	return 0;
 }
 
+RESULT eStaticServiceMP3Info::getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &evt, time_t start_time)
+{
+	if (ref.path.find("://") != std::string::npos)
+	{
+		eServiceReference equivalentref(ref);
+		equivalentref.type = eServiceFactoryMP3::id;
+		equivalentref.path.clear();
+		return eEPGCache::getInstance()->lookupEventTime(equivalentref, start_time, evt);
+	}
+	evt = 0;
+	return -1;
+}
+
 DEFINE_REF(eStreamBufferInfo)
 
 eStreamBufferInfo::eStreamBufferInfo(int percentage, int inputrate, int outputrate, int space, int size)
@@ -358,19 +371,6 @@ void eServiceMP3InfoContainer::setBuffer(GstBuffer *buffer)
 	bufferData = map.data;
 	bufferSize = map.size;
 #endif
-}
-
-RESULT eStaticServiceMP3Info::getEvent(const eServiceReference &ref, ePtr<eServiceEvent> &evt, time_t start_time)
-{
-	if (ref.path.find("://") != std::string::npos)
-	{
-		eServiceReference equivalentref(ref);
-		equivalentref.type = eServiceFactoryMP3::id;
-		equivalentref.path.clear();
-		return eEPGCache::getInstance()->lookupEventTime(equivalentref, start_time, evt);
-	}
-	evt = 0;
-	return -1;
 }
 
 // eServiceMP3
@@ -1100,6 +1100,8 @@ int eServiceMP3::getInfo(int w)
 	case sFrameRate:
 		return xineLib->getVideoFrameRate();
 		break;
+	case sProgressive: return m_progressive;
+	case sAspect: return m_aspect;
 	case sTagTitle:
 	case sTagArtist:
 	case sTagAlbum:
@@ -2297,6 +2299,7 @@ void eServiceMP3::gstPoll(ePtr<GstMessageContainer> const &msg)
 		}
 	}
 }
+
 */
 
 eAutoInitPtr<eServiceFactoryMP3> init_eServiceFactoryMP3(eAutoInitNumbers::service+1, "eServiceFactoryMP3");
@@ -2435,7 +2438,6 @@ void eServiceMP3::pullSubtitle(GstBuffer *buffer)
 
 void eServiceMP3::pushSubtitles()
 {
-
 /*	openPLiPC
 	pts_t running_pts = 0;
 	int32_t next_timer = 0, decoder_ms, start_ms, end_ms, diff_start_ms, diff_end_ms;
@@ -2546,7 +2548,7 @@ RESULT eServiceMP3::enableSubtitles(iSubtitleUser *user, struct SubtitleTrack &t
 {
 /*	openPLiPC
 	if (m_currentSubtitleStream != track.pid)
- 	{
+	{
 		g_object_set (G_OBJECT (m_gst_playbin), "current-text", -1, NULL);
 		m_subtitle_sync_timer->stop();
 		m_subtitle_pages.clear();
@@ -2599,6 +2601,7 @@ RESULT eServiceMP3::getCachedSubtitle(struct SubtitleTrack &track)
 		return -1;
 
 /*	openPLiPC
+
 	if (m_cachedSubtitleStream >= 0 && m_cachedSubtitleStream < (int)m_subtitleStreams.size())
 	{
 		track.type = 2;
@@ -2708,7 +2711,6 @@ void eServiceMP3::setAC3Delay(int delay)
 
 void eServiceMP3::setPCMDelay(int delay)
 {
-
 /*	openPLiPC
 	pcm_delay = delay;
 	if (!m_gst_playbin || m_state != stRunning)
