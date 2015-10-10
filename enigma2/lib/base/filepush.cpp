@@ -149,7 +149,7 @@ void eFilePushThread::thread()
 				/* in stream_mode, we are sending EOF events
 				   over and over until somebody responds.
 
-				   in stream_mode, think of evtEOF as "buffer underrun occured". */
+				   in stream_mode, think of evtEOF as "buffer underrun occurred". */
 			if (xineLib->end_of_stream == true)
 				sendEvent(evtEOF);
 
@@ -333,10 +333,10 @@ void eFilePushThreadRecorder::thread()
 	/* m_stop must be evaluated after each syscall. */
 	while (!m_stop)
 	{
-    ssize_t bytes;
-    if (m_fd_source == 0)
-    	bytes = m_source->read(0, m_buffer, 0);
-    else
+		ssize_t bytes;
+		if (m_fd_source == 0)
+			bytes = m_source->read(0, m_buffer, 0);
+		else
 			bytes = ::read(m_fd_source, m_buffer, m_buffersize);
 		if (bytes < 0)
 		{
