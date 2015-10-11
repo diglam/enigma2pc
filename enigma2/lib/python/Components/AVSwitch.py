@@ -151,27 +151,35 @@ def InitAVSwitch():
 	SystemInfo["ScartSwitch"] = eAVSwitch.getInstance().haveScartSwitch()
 
 	try:
-		can_downmix = "downmix" in open(eEnv.resolve("${sysconfdir}/stb/audio/ac3_choices"), "r").read()
+		can_downmix_ac3 = "downmix" in open(eEnv.resolve("${sysconfdir}/stb/audio/ac3_choices"), "r").read()
 	except:
-		can_downmix = False
+		can_downmix_ac3 = False
 
-	SystemInfo["CanDownmixAC3"] = can_downmix
-	if can_downmix:
+	SystemInfo["CanDownmixAC3"] = can_downmix_ac3
+	if can_downmix_ac3:
 		def setAC3Downmix(configElement):
 			open(eEnv.resolve("${sysconfdir}/stb/audio/ac3"), "w").write(configElement.value and "downmix" or "passthrough")
 		config.av.downmix_ac3 = ConfigYesNo(default = True)
 		config.av.downmix_ac3.addNotifier(setAC3Downmix)
 
-	can_downmix = os.path.exists("/usr/lib/gstreamer-0.10/libgstdtsdec.so")
-	SystemInfo["CanDownmixDTS"] = can_downmix
-	if can_downmix:
+//	can_downmix = os.path.exists("/usr/lib/gstreamer-0.10/libgstdtsdec.so")
+
+	try:
+		can_downmix_dts = "downmix" in open(eEnv.resolve("${sysconfdir}/stb/audio/dts_choices"), "r").read()
+	except:
+		can_downmix_dts = False
+
+	SystemInfo["CanDownmixDTS"] = can_downmix_dts
+
+	if can_downmix_dts:
 		def setDTSDownmix(configElement):
-			open(eEnv.resolve("${sysconfdir}/stb/dts_mode"), "w").write(configElement.value and "downmix" or "passthrough")
-			try:
-				os.unlink('/home/root/.gstreamer-0.10/registry.mipsel.bin')
-			except:
-				pass
-		config.av.downmix_dts = ConfigYesNo(default = False)
+			open(eEnv.resolve("${sysconfdir}/stb/audio/dts"), "w").write(configElement.value and "downmix" or "passthrough")
+//			open(eEnv.resolve("${sysconfdir}/stb/dts_mode"), "w").write(configElement.value and "downmix" or "passthrough")
+//			try:
+//				os.unlink('/home/root/.gstreamer-0.10/registry.mipsel.bin')
+//			except:
+//				pass
+		config.av.downmix_dts = ConfigYesNo(default = True)
 		config.av.downmix_dts.addNotifier(setDTSDownmix)
 
 	try:
