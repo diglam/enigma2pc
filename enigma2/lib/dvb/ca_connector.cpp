@@ -46,6 +46,7 @@ caConnector::caConnector()
 caConnector::~caConnector()
 {
 	instance = 0;
+	abort_badly();
 	kill();
 
 	nl_close(sock);
