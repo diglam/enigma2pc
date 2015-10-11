@@ -14,7 +14,7 @@ from Components.Harddisk import harddiskmanager
 from Components.Network import iNetwork
 from RecordTimer import parseEvent
 from Screens.Standby import inStandby
-from Tools.DreamboxHardware import getFPVersion
+from Tools.StbHardware import getFPVersion
 from Tools.Directories import fileExists, pathExists
 from time import time, localtime, strftime
 from enigma import eDVBVolumecontrol, eServiceCenter
