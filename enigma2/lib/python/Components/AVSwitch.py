@@ -24,8 +24,7 @@ class AVSwitch:
 			return (4,3)
 		elif valstr == "16_9": # auto ... 4:3 or 16:9
 			try:
-				aspect_str = open(eEnv.resolve("${sysconfdir}/stb/vmpeg/0/aspect"), "r").read()
-				if aspect_str == "1": # 4:3
+				if "1" in open(eEnv.resolve("${sysconfdir}/stb/vmpeg/0/aspect"), "r").read():# 4:3
 					return (4,3)
 			except IOError:
 				pass
@@ -96,12 +95,13 @@ def InitAVSwitch():
 	# TRANSLATORS: (aspect ratio policy: cropped content on left/right) in doubt, keep english term
 	"panscan": _("Pan&scan"),
 	# TRANSLATORS: (aspect ratio policy: display as fullscreen, even if this breaks the aspect)
-	"scale": _("Just scale"),
-  
-  "zoom": _("Zoom")}
-	if os.path.exists("/usr/local/e2/etc/stb/video/policy2_choices") and "auto" in open("/usr/local/e2/etc/stb/video/policy2_choices").readline():
-		# TRANSLATORS: (aspect ratio policy: always try to display as fullscreen, when there is no content (black bars) on left/right, even if this breaks the aspect.
-		policy2_choices.update({"auto": _("Auto")})
+	"scale": _("Just scale"), "zoom": _("Zoom")}
+	try:
+		if "auto" in open("/usr/local/e2/etc/stb/video/policy2_choices").read():
+			# TRANSLATORS: (aspect ratio policy: always try to display as fullscreen, when there is no content (black bars) on left/right, even if this breaks the aspect.
+			policy2_choices.update({"auto": _("Auto")})
+	except:
+		pass
 	config.av.policy_169 = ConfigSelection(choices=policy2_choices, default = "letterbox")
 	policy_choices = {
 	# TRANSLATORS: (aspect ratio policy: black bars on left/right) in doubt, keep english term.
@@ -111,12 +111,13 @@ def InitAVSwitch():
 	# TRANSLATORS: (aspect ratio policy: display as fullscreen, with stretching the left/right)
 	"nonlinear": _("Nonlinear"),
 	# TRANSLATORS: (aspect ratio policy: display as fullscreen, even if this breaks the aspect)
-	"scale": _("Just scale"),
-  
-  "zoom": _("Zoom")}
-	if os.path.exists(eEnv.resolve("${sysconfdir}/stb/video/policy_choices")) and "auto" in open(eEnv.resolve("${sysconfdir}/stb/video/policy_choices")).readline():
-		# TRANSLATORS: (aspect ratio policy: always try to display as fullscreen, when there is no content (black bars) on left/right, even if this breaks the aspect.
-		policy_choices.update({"auto": _("Auto")})
+	"scale": _("Just scale"), "zoom": _("Zoom")}
+	try:
+		if "auto" in open(eEnv.resolve("${sysconfdir}/stb/video/policy_choices")).read():
+			# TRANSLATORS: (aspect ratio policy: always try to display as fullscreen, when there is no content (black bars) on left/right, even if this breaks the aspect.
+			policy_choices.update({"auto": _("Auto")})
+	except:
+		pass
 	config.av.policy_43 = ConfigSelection(choices=policy_choices, default = "pillarbox")
 	config.av.tvsystem = ConfigSelection(choices = {"pal": _("PAL"), "ntsc": _("NTSC"), "multinorm": _("multinorm")}, default="pal")
 	config.av.wss = ConfigEnableDisable(default = True)
