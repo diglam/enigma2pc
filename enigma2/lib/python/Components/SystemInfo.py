@@ -43,3 +43,4 @@ SystemInfo["VFD_scroll_repeats"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/lcd
 SystemInfo["VFD_scroll_delay"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/lcd/scroll_delay"))
 SystemInfo["VFD_initial_scroll_delay"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/lcd/initial_scroll_delay"))
 SystemInfo["VFD_final_scroll_delay"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/lcd/final_scroll_delay"))
+SystemInfo["LcdLiveTV"] = fileCheck(eEnv.resolve("${sysconfdir}/stb/fb/sd_detach"))
