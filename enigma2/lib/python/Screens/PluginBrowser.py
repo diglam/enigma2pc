@@ -53,14 +53,15 @@ class PluginBrowser(Screen):
 
 		self["key_red"] = self["red"] = Label(_("Remove plugins"))
 		self["key_green"] = self["green"] = Label(_("Download plugins"))
-		
+
 		self.list = []
 		self["list"] = PluginList(self.list)
-		
-		self["actions"] = ActionMap(["WizardActions"],
+
+		self["actions"] = ActionMap(["WizardActions","MenuActions"],
 		{
 			"ok": self.save,
 			"back": self.close,
+			"menu": self.exit,
 		})
 		self["PluginDownloadActions"] = ActionMap(["ColorActions"],
 		{
@@ -78,6 +79,9 @@ class PluginBrowser(Screen):
 		self.onChangedEntry = []
 		self["list"].onSelectionChanged.append(self.selectionChanged)
 		self.onLayoutFinish.append(self.saveListsize)
+
+	def exit(self):
+		self.close(True)
 
 	def saveListsize(self):
 		listsize = self["list"].instance.size()
