@@ -6,7 +6,7 @@ INSTALL_E2DIR="/usr/local/e2"
 echo "-----------------------------------------"
 echo "*** INSTALL REQUIRED PACKAGES ***"
 echo "-----------------------------------------"
-REQPKG="python-cheetah python-twisted-web ntpdate dvb-apps \
+REQPKG="python-openssl python-cheetah python-twisted-web ntpdate dvb-apps \
         "
 
 for p in $REQPKG; do
@@ -41,7 +41,7 @@ sudo cp -fR SystemPlugins/* $INSTALL_E2DIR/lib/enigma2/python/Plugins/SystemPlug
 sudo cp -fR PLi/* $INSTALL_E2DIR/lib/enigma2/python/Plugins/PLi/
 
 echo "-----------------Installed plugins:----------------------"
-echo " BouquetHotkeys, EPGSearch, OpenWebIf, OscamStatus, TMBD,"
+echo " BouquetHotkeys, EPGSearch, OpenWebif, OscamStatus, TMBD,"
 echo " SimpleUmount, TMBD, xModem, SystemTime,  BitrateViewer, "
 echo " Filebrowser, PermanentClock, VirtualZap"
 

@@ -1,0 +1,88 @@
+#from urllib import quote
+#from Plugins.Extensions.OpenWebif.local import tstrings
+<div id="content_main" style="min-height: 500px;">
+	<div id="tvcontentmain">
+		<div id="toolbar-header">
+			<span id="toolbar">
+		#set $path=''
+		<span id="moviebuttons">
+			<button onclick="load_maincontent_spin('ajax/movies?dirname=/'); return false">$tstrings['Root']</button>
+			#for $dir in $directory[0:-1].split("/")[1:-1]
+				#set $path += '/' + $dir
+				<button onclick="load_maincontent_spin('ajax/movies?dirname='+escape('$path'));">$dir</button>
+			#end for
+			#if $directory != '/'
+				<button><span style="color: red; font-weight: bold;">
+					#echo $directory[0:-1].split("/")[-1]
+				</span></button>
+			#end if
+		</span>
+
+		#if $len($bookmarks)
+			<select name="directory" onChange="load_maincontent_spin('ajax/movies?dirname='+escape(options[selectedIndex].value)); return false;">
+			<option>Subdirs:</option>
+			#for $bookmark in $bookmarks
+				<option value="$directory$bookmark">$bookmark</option>
+			#end for
+			</select>
+		#end if
+		</span>
+		</div>
+
+		<div id="movies">
+		#set $count = 0
+		#for $movie in $movies
+			<div class="tm_row" id="$count">
+				<div class="tm_text">
+					<div class="tm_buttons">
+						<div>
+						<a href='#' onClick="playRecording('$quote($movie.serviceref)');" title="$tstrings['playback']"><div class="ow_i ow_i_play"></div></a>
+						#if $transcoding
+						<a href="#" onclick="jumper80('$quote($movie.filename)');" title="$tstrings['stream']: $movie.eventname"><div class="ow_i ow_i_stream1"></div></a>
+						<a href="#" onclick="jumper8003('$quote($movie.filename)');" title="$tstrings['stream'] ($tstrings['transcoded']): $movie.eventname"><div class="ow_i ow_i_stream2"></div></a>
+						#else
+						<a target="_blank" href='web/ts.m3u?file=$quote($movie.filename)' title="$tstrings['stream'] $movie.eventname"><div class="ow_i ow_i_stream1"></div></a>
+						#end if
+						<br><br>
+						#set $w = $movie.lastseen
+						#if $w > 0
+							#set $w = $w * 70 / 100
+							#set $size = str($w) + 'px'
+							<div class="mlp"><div class="mlpp" style="width:$size">
+							</div></div>
+						#end if
+						<br>
+						#set $eventname_escaped =  $movie.eventname.replace("'", r"\'")
+						<a href='/file?action=download&file=$quote($movie.filename)' title="$tstrings['download'] $movie.eventname"><div class="ow_i ow_i_save"></div></a>
+						<a href='#' onClick="renameMovie('$quote($movie.serviceref)','$eventname_escaped');" title="$tstrings['rename_recording']"><div class="ow_i ow_i_edit"></div></a>
+						<a href='#' onClick="deleteMovie('$quote($movie.serviceref)', '$count', '$eventname_escaped'); return false;" title="$tstrings['delete_recording']"><div class="ow_i ow_i_delete"></div></a>
+
+						</div>
+						</div>
+					#if $movie.eventname != ""
+						<div>
+							<span style="color: #176093; font-weight: bold;">$movie.eventname</span><br /> $movie.servicename  $movie.begintime<br /> $movie.length min.
+						</div>
+						<div>
+							<span style="color: #7F8181; font-weight: bold;">$movie.description</span>
+						</div>
+						<div>
+							<span style="color: #7F8181;">$movie.descriptionExtended</span>
+						</div>
+					#else
+						<div>
+							<span style="color: #176093; font-weight: bold;">$movie.filename</span>
+						</div>
+					#end if
+				</div>
+				<div style="clear: both;"></div>
+				#set $count += 1
+			</div>
+		#end for
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+\$('#moviebuttons').buttonset();
+</script>
