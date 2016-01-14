@@ -101,7 +101,7 @@ static int ca_ioctl(struct inode *inode, struct file *f,
 	unsigned int cmd, unsigned long arg)
 {
 #ifdef HAVE_UNLOCKED_IOCTL
-	struct inode *inode = f->f_dentry->d_inode;
+	struct inode *inode = f->f_path.dentry->d_inode;
 #endif
 	struct ca_device *cadev = find_device(iminor(inode));
 
@@ -109,7 +109,7 @@ static int ca_ioctl(struct inode *inode, struct file *f,
 		printk("Failed to locate device\n");
 		return -EFAULT;
 	}
-	
+
 	dprintk("ca_ioctl adapter%d - ca%d cmd:%x\n", cadev->adapter_num,
 			cadev->device_num, cmd);
 
@@ -253,7 +253,7 @@ static int __init dvblb_init(void)
 	for(i=0; i < 8; i++) {
 		for(j=0; (j<8 && devices_counter<MAX_CA_DEVICES); j++) {
 			struct file *filp;
-			
+
 			snprintf(device_name, 50, "/dev/dvb/adapter%d/frontend%d", i, j);
 			filp = filp_open(device_name,00,O_RDONLY);
 
@@ -277,7 +277,7 @@ static int __init dvblb_init(void)
 
 	if (!failed)
 		printk("dvbsoftwareca: registered %d CA devices\n", devices_counter);
-	
+
 	if (failed) {
 		for(i = 0; i < devices_counter; i++) {
 			destroy_ca_device(ca_devices[i]);
@@ -316,4 +316,3 @@ MODULE_DESCRIPTION("DVB software CA device.");
 MODULE_AUTHOR("cougar");
 MODULE_LICENSE("GPL");
 MODULE_VERSION( DVBSOFTWARECA_VERSION );
-

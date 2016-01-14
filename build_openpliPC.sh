@@ -133,14 +133,14 @@ if [ "$DO_XINE" -eq "1" ]; then
 	PKG="xine-lib"
 
 	cd $PKG
-	
-  if [ "$DO_CONFIGURE" -eq "1" ]; then	
+
+  if [ "$DO_CONFIGURE" -eq "1" ]; then
 	  echo "-----------------------------------------"
 	  echo "configuring OpenPliPC $PKG"
 	  echo "-----------------------------------------"
 
 	  ./autogen.sh --disable-xinerama --prefix=/usr --enable-a52dec=internal --enable-dts=internal
-  fi	
+  fi
 
   if [ "$DO_MAKEINSTALL" -eq "0" ]; then
 	  echo "-----------------------------------------"
@@ -154,7 +154,7 @@ if [ "$DO_XINE" -eq "1" ]; then
       echo "An error occured while building xine-lib"
       exit
     fi
-    
+
   else
 	  echo "--------------------------------------"
 	  echo "installing OpenPliPC $PKG"
@@ -168,7 +168,7 @@ if [ "$DO_XINE" -eq "1" ]; then
       exit
     fi
   fi
-    
+
 	cd ..
 
 fi
@@ -194,8 +194,8 @@ if [ "$DO_CONFIGURE" -eq "1" ]; then
 
   autoreconf -i
   ./configure --prefix=$INSTALL_E2DIR --with-xlib --with-debug
-fi  
- 
+fi
+
 echo "--------------------------------------"
 echo "build OpenPliPC $PKG, please wait..."
 echo "--------------------------------------"
@@ -208,8 +208,8 @@ if [ "$DO_MAKEINSTALL" -eq "0" ]; then
     echo "An error occured while building OpenPliPC - section make"
     exit
   fi
-  
-else  
+
+else
   echo "--------------------------------------"
   echo "installing OpenPliPC $PKG in $INSTALL_E2DIR"
   echo "--------------------------------------"
